@@ -65,7 +65,7 @@ def test_spend_limit_gives_503_and_marks_the_tender(conn):
 def test_unexpected_errors_do_not_leak_details(conn):
     c = client(conn, Exploding(RuntimeError("secret internals dummy-token-xyz")))
     r = c.post("/tenders", json=TENDER)
-    assert r.status_code == 500 and "secret" not in r.text and "sk-or" not in r.text
+    assert r.status_code == 500 and "secret" not in r.text and "dummy-token" not in r.text
 
 
 def test_security_headers_and_no_unsafe_html_in_the_screen(conn):

@@ -3,7 +3,7 @@ name = "tender-desk"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "Rodvader8", email = "hello@rodfernandezdesign.com" }
+    { name = "Rod Fernandez", email = "hello@rodfernandezdesign.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [

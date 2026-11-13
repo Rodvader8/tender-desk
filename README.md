@@ -24,7 +24,7 @@ Design rules, each enforced in code and covered by a test:
 - **The model can't invent a price item.** A choice that wasn't offered is rejected and flagged.
 - **Flags a reviewer can trust.** Unit mismatches (after normalising `m²`/`m2`, `lin m`/`m`, `lump sum`/`each`), no match, low confidence and below-policy margin are all flagged on the draft.
 - **Nothing is saved until a person decides.** LangGraph `interrupt()` pauses the run and the state is checkpointed. Every step writes to an audit log.
-- **Tender text is treated as untrusted** in the prompts. (Adversarial testing of this is a separate project, not done yet.)
+- **Tender text is treated as untrusted**: delimited in the prompt, quantities and instruction-like phrases checked in code, and attacked with 36 injection tests (see the prompt-injection section).
 - **Hard spend limits.** The OpenRouter client refuses to call the API past a per-run cap, a project cap, or when the account balance would drop below a floor. `uv run spend` shows the live numbers.
 
 ## Run it
