@@ -1,0 +1,478 @@
+{
+  "vec_current": {
+    "overall": {
+      "n": 39,
+      "hit@1": 0.897,
+      "hit@3": 0.923,
+      "hit@4": 0.923,
+      "hit@5": 0.923,
+      "mrr": 0.917
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 11,
+        "hit@1": 0.636,
+        "hit@3": 0.727,
+        "hit@4": 0.727,
+        "hit@5": 0.727,
+        "mrr": 0.706
+      },
+      "paraphrase": {
+        "n": 18,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "spec": {
+        "n": 9,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 1,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 12.56,
+    "top1_misses": [
+      {
+        "id": "q006",
+        "query": "plastic underlay beneath slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 2
+      },
+      {
+        "id": "q012",
+        "query": "cart away excess spoil",
+        "gold": "Soil removal to tip",
+        "got": "Floor tiles supply and lay",
+        "gold_rank": 22
+      },
+      {
+        "id": "q027",
+        "query": "chippy hours for the fit out",
+        "gold": "Carpenter labour",
+        "got": "Concrete pump hire per half day",
+        "gold_rank": 19
+      },
+      {
+        "id": "q051",
+        "query": "sparky hours",
+        "gold": "Electrician labour",
+        "got": "Site toilet hire per week",
+        "gold_rank": 6
+      }
+    ],
+    "top_score_positive_mean": 0.803,
+    "top_score_negative_mean": 0.674
+  },
+  "vec_query_prefix": {
+    "overall": {
+      "n": 39,
+      "hit@1": 0.897,
+      "hit@3": 0.923,
+      "hit@4": 0.923,
+      "hit@5": 0.923,
+      "mrr": 0.917
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 11,
+        "hit@1": 0.636,
+        "hit@3": 0.727,
+        "hit@4": 0.727,
+        "hit@5": 0.727,
+        "mrr": 0.706
+      },
+      "paraphrase": {
+        "n": 18,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "spec": {
+        "n": 9,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 1,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 13.29,
+    "top1_misses": [
+      {
+        "id": "q006",
+        "query": "plastic underlay beneath slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 2
+      },
+      {
+        "id": "q012",
+        "query": "cart away excess spoil",
+        "gold": "Soil removal to tip",
+        "got": "Floor tiles supply and lay",
+        "gold_rank": 22
+      },
+      {
+        "id": "q027",
+        "query": "chippy hours for the fit out",
+        "gold": "Carpenter labour",
+        "got": "Concrete pump hire per half day",
+        "gold_rank": 19
+      },
+      {
+        "id": "q051",
+        "query": "sparky hours",
+        "gold": "Electrician labour",
+        "got": "Site toilet hire per week",
+        "gold_rank": 6
+      }
+    ],
+    "top_score_positive_mean": 0.803,
+    "top_score_negative_mean": 0.674
+  },
+  "vec_name_only": {
+    "overall": {
+      "n": 39,
+      "hit@1": 0.872,
+      "hit@3": 0.872,
+      "hit@4": 0.897,
+      "hit@5": 0.923,
+      "mrr": 0.887
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 11,
+        "hit@1": 0.636,
+        "hit@3": 0.636,
+        "hit@4": 0.636,
+        "hit@5": 0.727,
+        "mrr": 0.669
+      },
+      "paraphrase": {
+        "n": 18,
+        "hit@1": 0.944,
+        "hit@3": 0.944,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.958
+      },
+      "spec": {
+        "n": 9,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 1,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 13.11,
+    "top1_misses": [
+      {
+        "id": "q005",
+        "query": "edge formwork to the slab perimeter",
+        "gold": "Formwork hire per lineal metre",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 4
+      },
+      {
+        "id": "q006",
+        "query": "plastic underlay beneath slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 25
+      },
+      {
+        "id": "q012",
+        "query": "cart away excess spoil",
+        "gold": "Soil removal to tip",
+        "got": "Floor waste and fixtures set",
+        "gold_rank": 13
+      },
+      {
+        "id": "q027",
+        "query": "chippy hours for the fit out",
+        "gold": "Carpenter labour",
+        "got": "Concrete pump hire per half day",
+        "gold_rank": 27
+      },
+      {
+        "id": "q051",
+        "query": "sparky hours",
+        "gold": "Electrician labour",
+        "got": "Concrete pump hire per half day",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.815,
+    "top_score_negative_mean": 0.684
+  },
+  "bm25": {
+    "overall": {
+      "n": 39,
+      "hit@1": 0.667,
+      "hit@3": 0.821,
+      "hit@4": 0.821,
+      "hit@5": 0.821,
+      "mrr": 0.744
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 11,
+        "hit@1": 0.364,
+        "hit@3": 0.545,
+        "hit@4": 0.545,
+        "hit@5": 0.545,
+        "mrr": 0.472
+      },
+      "paraphrase": {
+        "n": 18,
+        "hit@1": 0.778,
+        "hit@3": 0.889,
+        "hit@4": 0.889,
+        "hit@5": 0.889,
+        "mrr": 0.824
+      },
+      "spec": {
+        "n": 9,
+        "hit@1": 0.778,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.889
+      },
+      "tender_style": {
+        "n": 1,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 0.27,
+    "top1_misses": [
+      {
+        "id": "q005",
+        "query": "edge formwork to the slab perimeter",
+        "gold": "Formwork hire per lineal metre",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 3
+      },
+      {
+        "id": "q006",
+        "query": "plastic underlay beneath slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 7
+      },
+      {
+        "id": "q008",
+        "query": "power float and finish the slab",
+        "gold": "Concrete slab finishing labour",
+        "got": "Render and finish",
+        "gold_rank": 3
+      },
+      {
+        "id": "q012",
+        "query": "cart away excess spoil",
+        "gold": "Soil removal to tip",
+        "got": "Concrete 25MPa ready-mix",
+        "gold_rank": 12
+      },
+      {
+        "id": "q016",
+        "query": "150 PFC column to the carport",
+        "gold": "Structural steel column 150PFC",
+        "got": "Soil removal to tip",
+        "gold_rank": 2
+      },
+      {
+        "id": "q019",
+        "query": "labour to erect the steelwork",
+        "gold": "Steel erection labour",
+        "got": "Soil removal to tip",
+        "gold_rank": 7
+      },
+      {
+        "id": "q027",
+        "query": "chippy hours for the fit out",
+        "gold": "Carpenter labour",
+        "got": "Survey and set out",
+        "gold_rank": 28
+      },
+      {
+        "id": "q036",
+        "query": "190 mm blockwork to the boundary wall",
+        "gold": "Concrete block 190 laid",
+        "got": "Soil removal to tip",
+        "gold_rank": 2
+      },
+      {
+        "id": "q038",
+        "query": "bricky labour",
+        "gold": "Bricklayer labour",
+        "got": "Carpenter labour",
+        "gold_rank": 2
+      },
+      {
+        "id": "q051",
+        "query": "sparky hours",
+        "gold": "Electrician labour",
+        "got": "Concrete 25MPa ready-mix",
+        "gold_rank": 51
+      },
+      {
+        "id": "q053",
+        "query": "10 mm gyprock hung and finished",
+        "gold": "Plasterboard 10mm fix and set",
+        "got": "Render and finish",
+        "gold_rank": 13
+      },
+      {
+        "id": "q056",
+        "query": "waterproof the bathroom floor",
+        "gold": "Waterproofing membrane wet area",
+        "got": "Plywood structural floor 19mm",
+        "gold_rank": 56
+      },
+      {
+        "id": "q063",
+        "query": "foreman on site per day",
+        "gold": "Site supervisor",
+        "got": "Concrete pump hire per half day",
+        "gold_rank": 3
+      }
+    ],
+    "top_score_positive_mean": 5.918,
+    "top_score_negative_mean": 1.366
+  },
+  "hybrid": {
+    "overall": {
+      "n": 39,
+      "hit@1": 0.821,
+      "hit@3": 0.897,
+      "hit@4": 0.897,
+      "hit@5": 0.897,
+      "mrr": 0.862
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 11,
+        "hit@1": 0.545,
+        "hit@3": 0.727,
+        "hit@4": 0.727,
+        "hit@5": 0.727,
+        "mrr": 0.639
+      },
+      "paraphrase": {
+        "n": 18,
+        "hit@1": 0.889,
+        "hit@3": 0.944,
+        "hit@4": 0.944,
+        "hit@5": 0.944,
+        "mrr": 0.92
+      },
+      "spec": {
+        "n": 9,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 1,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 21.81,
+    "top1_misses": [
+      {
+        "id": "q006",
+        "query": "plastic underlay beneath slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 3
+      },
+      {
+        "id": "q012",
+        "query": "cart away excess spoil",
+        "gold": "Soil removal to tip",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 11
+      },
+      {
+        "id": "q019",
+        "query": "labour to erect the steelwork",
+        "gold": "Steel erection labour",
+        "got": "Carpenter labour",
+        "gold_rank": 2
+      },
+      {
+        "id": "q027",
+        "query": "chippy hours for the fit out",
+        "gold": "Carpenter labour",
+        "got": "Survey and set out",
+        "gold_rank": 21
+      },
+      {
+        "id": "q051",
+        "query": "sparky hours",
+        "gold": "Electrician labour",
+        "got": "Formwork hire per lineal metre",
+        "gold_rank": 16
+      },
+      {
+        "id": "q053",
+        "query": "10 mm gyprock hung and finished",
+        "gold": "Plasterboard 10mm fix and set",
+        "got": "Render and finish",
+        "gold_rank": 2
+      },
+      {
+        "id": "q056",
+        "query": "waterproof the bathroom floor",
+        "gold": "Waterproofing membrane wet area",
+        "got": "Floor waste and fixtures set",
+        "gold_rank": 15
+      }
+    ],
+    "top_score_positive_mean": 5.918,
+    "top_score_negative_mean": 1.366
+  }
+}

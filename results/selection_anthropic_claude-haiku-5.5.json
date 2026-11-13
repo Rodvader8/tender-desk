@@ -1,0 +1,798 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "queries": 74,
+  "cost_usd": 0.0057,
+  "end_to_end_accuracy": 0.939,
+  "accuracy_when_offered": 1.0,
+  "right_item_not_offered": 4,
+  "wrong_pick": 0,
+  "wrongly_abstained": 0,
+  "invalid_ids": 1,
+  "invalid_but_right": 1,
+  "negatives": 8,
+  "false_match_rate": 0.0,
+  "errors": [
+    {
+      "id": "q012",
+      "kind": "jargon",
+      "query": "cart away excess spoil",
+      "gold": "Soil removal to tip",
+      "offered": false,
+      "pick": "Skip bin 6m3",
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q027",
+      "kind": "jargon",
+      "query": "chippy hours for the fit out",
+      "gold": "Carpenter labour",
+      "offered": false,
+      "pick": null,
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q051",
+      "kind": "jargon",
+      "query": "sparky hours",
+      "gold": "Electrician labour",
+      "offered": false,
+      "pick": null,
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q059",
+      "kind": "paraphrase",
+      "query": "scaffold for two storey walls",
+      "gold": "Scaffold hire per week",
+      "offered": false,
+      "pick": "Scaffold hire per week",
+      "invalid": true,
+      "correct": false
+    }
+  ],
+  "records": [
+    {
+      "id": "q001",
+      "kind": "tender_style",
+      "query": "supply and place 25 MPa concrete to the slab",
+      "gold": "Concrete 25MPa ready-mix",
+      "offered": true,
+      "pick": "Concrete 25MPa ready-mix",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q002",
+      "kind": "paraphrase",
+      "query": "32 MPa ready mixed concrete for the suspended beams",
+      "gold": "Concrete 32MPa ready-mix",
+      "offered": true,
+      "pick": "Concrete 32MPa ready-mix",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q003",
+      "kind": "spec",
+      "query": "SL82 mesh to slab, 6 sheets",
+      "gold": "Reinforcing mesh SL82 6m x 2.4m",
+      "offered": true,
+      "pick": "Reinforcing mesh SL82 6m x 2.4m",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q004",
+      "kind": "spec",
+      "query": "N12 starter bars 12 m lengths",
+      "gold": "Reinforcing bar N12 12m",
+      "offered": true,
+      "pick": "Reinforcing bar N12 12m",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q005",
+      "kind": "paraphrase",
+      "query": "edge formwork to the slab perimeter",
+      "gold": "Formwork hire per lineal metre",
+      "offered": true,
+      "pick": "Formwork hire per lineal metre",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q006",
+      "kind": "jargon",
+      "query": "plastic underlay beneath slab, 200 micron",
+      "gold": "Vapour barrier membrane 200um",
+      "offered": true,
+      "pick": "Vapour barrier membrane 200um",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q007",
+      "kind": "jargon",
+      "query": "boom pump for the pour, half day",
+      "gold": "Concrete pump hire per half day",
+      "offered": true,
+      "pick": "Concrete pump hire per half day",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q008",
+      "kind": "jargon",
+      "query": "power float and finish the slab",
+      "gold": "Concrete slab finishing labour",
+      "offered": true,
+      "pick": "Concrete slab finishing labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q009",
+      "kind": "paraphrase",
+      "query": "hire an 8 tonne digger with driver",
+      "gold": "Excavator hire 8t with operator",
+      "offered": true,
+      "pick": "Excavator hire 8t with operator",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q010",
+      "kind": "paraphrase",
+      "query": "level the building pad",
+      "gold": "Site cut and level",
+      "offered": true,
+      "pick": "Site cut and level",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q011",
+      "kind": "paraphrase",
+      "query": "20 mm crushed rock sub-base to driveway",
+      "gold": "Compacted road base 20mm",
+      "offered": true,
+      "pick": "Compacted road base 20mm",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q012",
+      "kind": "jargon",
+      "query": "cart away excess spoil",
+      "gold": "Soil removal to tip",
+      "offered": false,
+      "pick": "Skip bin 6m3",
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q013",
+      "kind": "paraphrase",
+      "query": "tipper truck for spoil cartage",
+      "gold": "Tipper truck hire",
+      "offered": true,
+      "pick": "Tipper truck hire",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q014",
+      "kind": "jargon",
+      "query": "silt fence around the site boundary",
+      "gold": "Sediment fencing",
+      "offered": true,
+      "pick": "Sediment fencing",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q015",
+      "kind": "spec",
+      "query": "200UB25 steel beam over the opening",
+      "gold": "Structural steel beam 200UB25",
+      "offered": true,
+      "pick": "Structural steel beam 200UB25",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q016",
+      "kind": "spec",
+      "query": "150 PFC column to the carport",
+      "gold": "Structural steel column 150PFC",
+      "offered": true,
+      "pick": "Structural steel column 150PFC",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q017",
+      "kind": "spec",
+      "query": "angle lintel 150x90x8 above the window",
+      "gold": "Steel lintel 150x90x8 angle",
+      "offered": true,
+      "pick": "Steel lintel 150x90x8 angle",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q018",
+      "kind": "paraphrase",
+      "query": "base plates and bolts for the steel columns",
+      "gold": "Base plate and fixings set",
+      "offered": true,
+      "pick": "Base plate and fixings set",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q019",
+      "kind": "paraphrase",
+      "query": "labour to erect the steelwork",
+      "gold": "Steel erection labour",
+      "offered": true,
+      "pick": "Steel erection labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q020",
+      "kind": "paraphrase",
+      "query": "engineer's certified detail drawings for steel",
+      "gold": "Shop drawings and certification",
+      "offered": true,
+      "pick": "Shop drawings and certification",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q021",
+      "kind": "spec",
+      "query": "90x45 pine studs for internal walls",
+      "gold": "Treated pine framing 90x45 MGP10",
+      "offered": true,
+      "pick": "Treated pine framing 90x45 MGP10",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q022",
+      "kind": "spec",
+      "query": "140 x 45 treated framing to external walls",
+      "gold": "Treated pine framing 140x45 MGP10",
+      "offered": true,
+      "pick": "Treated pine framing 140x45 MGP10",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q023",
+      "kind": "spec",
+      "query": "240 x 45 LVL bearer",
+      "gold": "LVL beam 240x45",
+      "offered": true,
+      "pick": "LVL beam 240x45",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q024",
+      "kind": "jargon",
+      "query": "trusses delivered and craned on",
+      "gold": "Roof truss supply and install",
+      "offered": true,
+      "pick": "Roof truss supply and install",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q025",
+      "kind": "spec",
+      "query": "19 mm structural ply flooring",
+      "gold": "Plywood structural floor 19mm",
+      "offered": true,
+      "pick": "Plywood structural floor 19mm",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q026",
+      "kind": "spec",
+      "query": "hardwood decking boards 86 x 19",
+      "gold": "Hardwood decking 86x19",
+      "offered": true,
+      "pick": "Hardwood decking 86x19",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q027",
+      "kind": "jargon",
+      "query": "chippy hours for the fit out",
+      "gold": "Carpenter labour",
+      "offered": false,
+      "pick": null,
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q028",
+      "kind": "paraphrase",
+      "query": "prefab wall frames, supply only",
+      "gold": "Wall frame prefabricated",
+      "offered": true,
+      "pick": "Wall frame prefabricated",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q029",
+      "kind": "paraphrase",
+      "query": "metal roofing sheets to the new roof, fixed",
+      "gold": "Colorbond roof sheeting supply and fix",
+      "offered": true,
+      "pick": "Colorbond roof sheeting supply and fix",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q030",
+      "kind": "spec",
+      "query": "R3.5 ceiling insulation",
+      "gold": "Roof insulation R3.5 batts",
+      "offered": true,
+      "pick": "Roof insulation R3.5 batts",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q031",
+      "kind": "paraphrase",
+      "query": "guttering and downpipes",
+      "gold": "Gutter and downpipe set",
+      "offered": true,
+      "pick": "Gutter and downpipe set",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q032",
+      "kind": "jargon",
+      "query": "reflective foil under the roof sheets",
+      "gold": "Sarking foil",
+      "offered": true,
+      "pick": "Sarking foil",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q033",
+      "kind": "paraphrase",
+      "query": "roof plumber for flashings, per hour",
+      "gold": "Roof plumber labour",
+      "offered": true,
+      "pick": "Roof plumber labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q034",
+      "kind": "jargon",
+      "query": "cap the ridge line",
+      "gold": "Ridge capping",
+      "offered": true,
+      "pick": "Ridge capping",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q035",
+      "kind": "paraphrase",
+      "query": "standard clay bricks laid to the garage",
+      "gold": "Common brick laid",
+      "offered": true,
+      "pick": "Common brick laid",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q036",
+      "kind": "spec",
+      "query": "190 mm blockwork to the boundary wall",
+      "gold": "Concrete block 190 laid",
+      "offered": true,
+      "pick": "Concrete block 190 laid",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q037",
+      "kind": "paraphrase",
+      "query": "wall ties and damp proof course",
+      "gold": "Brick tie and damp course set",
+      "offered": true,
+      "pick": "Brick tie and damp course set",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q038",
+      "kind": "jargon",
+      "query": "bricky labour",
+      "gold": "Bricklayer labour",
+      "offered": true,
+      "pick": "Bricklayer labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q039",
+      "kind": "paraphrase",
+      "query": "cement render to external walls",
+      "gold": "Render and finish",
+      "offered": true,
+      "pick": "Render and finish",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q040",
+      "kind": "paraphrase",
+      "query": "segmental retaining wall system",
+      "gold": "Retaining wall block system",
+      "offered": true,
+      "pick": "Retaining wall block system",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q041",
+      "kind": "spec",
+      "query": "20 mm copper water pipe",
+      "gold": "Copper pipe 20mm",
+      "offered": true,
+      "pick": "Copper pipe 20mm",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q042",
+      "kind": "spec",
+      "query": "100 mm PVC stormwater line",
+      "gold": "PVC stormwater pipe 100mm",
+      "offered": true,
+      "pick": "PVC stormwater pipe 100mm",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q043",
+      "kind": "paraphrase",
+      "query": "250 L electric hot water heater",
+      "gold": "Hot water system 250L electric",
+      "offered": true,
+      "pick": "Hot water system 250L electric",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q044",
+      "kind": "paraphrase",
+      "query": "floor wastes and bathroom fixtures",
+      "gold": "Floor waste and fixtures set",
+      "offered": true,
+      "pick": "Floor waste and fixtures set",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q045",
+      "kind": "paraphrase",
+      "query": "plumber hours for rough-in",
+      "gold": "Plumber labour",
+      "offered": true,
+      "pick": "Plumber labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q046",
+      "kind": "paraphrase",
+      "query": "sewer tie-in with council inspection",
+      "gold": "Sewer connection and inspection",
+      "offered": true,
+      "pick": "Sewer connection and inspection",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q047",
+      "kind": "spec",
+      "query": "2.5 mm TPS cable for power circuits",
+      "gold": "Cable TPS 2.5mm",
+      "offered": true,
+      "pick": "Cable TPS 2.5mm",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q048",
+      "kind": "paraphrase",
+      "query": "new 12-way switchboard",
+      "gold": "Switchboard 12 circuit",
+      "offered": true,
+      "pick": "Switchboard 12 circuit",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q049",
+      "kind": "tender_style",
+      "query": "LED downlights, supplied and installed",
+      "gold": "Downlight LED supply and install",
+      "offered": true,
+      "pick": "Downlight LED supply and install",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q050",
+      "kind": "jargon",
+      "query": "double GPOs",
+      "gold": "Power point double supply and install",
+      "offered": true,
+      "pick": "Power point double supply and install",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q051",
+      "kind": "jargon",
+      "query": "sparky hours",
+      "gold": "Electrician labour",
+      "offered": false,
+      "pick": null,
+      "invalid": false,
+      "correct": false
+    },
+    {
+      "id": "q052",
+      "kind": "paraphrase",
+      "query": "hard-wired interlinked smoke alarms",
+      "gold": "Smoke alarm interconnected",
+      "offered": true,
+      "pick": "Smoke alarm interconnected",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q053",
+      "kind": "jargon",
+      "query": "10 mm gyprock hung and finished",
+      "gold": "Plasterboard 10mm fix and set",
+      "offered": true,
+      "pick": "Plasterboard 10mm fix and set",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q054",
+      "kind": "paraphrase",
+      "query": "two coat paint finish to walls",
+      "gold": "Internal paint two coats",
+      "offered": true,
+      "pick": "Internal paint two coats",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q055",
+      "kind": "tender_style",
+      "query": "supply and lay floor tiles",
+      "gold": "Floor tiles supply and lay",
+      "offered": true,
+      "pick": "Floor tiles supply and lay",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q056",
+      "kind": "paraphrase",
+      "query": "waterproof the bathroom floor",
+      "gold": "Waterproofing membrane wet area",
+      "offered": true,
+      "pick": "Waterproofing membrane wet area",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q057",
+      "kind": "paraphrase",
+      "query": "painter labour per hour",
+      "gold": "Painter labour",
+      "offered": true,
+      "pick": "Painter labour",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q058",
+      "kind": "paraphrase",
+      "query": "standard kitchen cabinets per lineal metre",
+      "gold": "Kitchen cabinetry standard",
+      "offered": true,
+      "pick": "Kitchen cabinetry standard",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q059",
+      "kind": "paraphrase",
+      "query": "scaffold for two storey walls",
+      "gold": "Scaffold hire per week",
+      "offered": false,
+      "pick": "Scaffold hire per week",
+      "invalid": true,
+      "correct": false
+    },
+    {
+      "id": "q060",
+      "kind": "jargon",
+      "query": "portable toilet on site",
+      "gold": "Site toilet hire per week",
+      "offered": true,
+      "pick": "Site toilet hire per week",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q061",
+      "kind": "paraphrase",
+      "query": "6 cubic metre skip",
+      "gold": "Skip bin 6m3",
+      "offered": true,
+      "pick": "Skip bin 6m3",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q062",
+      "kind": "jargon",
+      "query": "franna crane hire",
+      "gold": "Crane truck hire",
+      "offered": true,
+      "pick": "Crane truck hire",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q063",
+      "kind": "paraphrase",
+      "query": "foreman on site per day",
+      "gold": "Site supervisor",
+      "offered": true,
+      "pick": "Site supervisor",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q064",
+      "kind": "paraphrase",
+      "query": "council and building approval fees",
+      "gold": "Building permit and fees",
+      "offered": true,
+      "pick": "Building permit and fees",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q065",
+      "kind": "paraphrase",
+      "query": "contract works insurance allowance",
+      "gold": "Insurance and compliance allowance",
+      "offered": true,
+      "pick": "Insurance and compliance allowance",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q066",
+      "kind": "paraphrase",
+      "query": "set out by a surveyor",
+      "gold": "Survey and set out",
+      "offered": true,
+      "pick": "Survey and set out",
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q067",
+      "kind": "negative",
+      "query": "solar panel array installation",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q068",
+      "kind": "negative",
+      "query": "swimming pool excavation and fibreglass shell",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q069",
+      "kind": "negative",
+      "query": "passenger lift installation",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q070",
+      "kind": "negative",
+      "query": "split system air conditioning supply",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q071",
+      "kind": "negative",
+      "query": "asbestos removal and disposal",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q072",
+      "kind": "negative",
+      "query": "landscaping and turf supply",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q073",
+      "kind": "negative",
+      "query": "CCTV cameras and recorder",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    },
+    {
+      "id": "q074",
+      "kind": "negative",
+      "query": "bitumen driveway sealing",
+      "gold": null,
+      "offered": null,
+      "pick": null,
+      "invalid": false,
+      "correct": true
+    }
+  ]
+}

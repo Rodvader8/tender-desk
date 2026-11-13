@@ -20,6 +20,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
 from .models import Choices, Draft, QuoteLine, Scope
+from .pricing import build_offer, choose_prices
 from .search import comparable_jobs, price_candidates
 from .units import normalise_unit
 
@@ -64,16 +65,8 @@ def build_graph(llm, conn, checkpointer):
         return {"candidates": cands, "comparables": comps}
 
     def estimate(state: State) -> dict:
-        items = state["scope"]["items"]
-        offer = [{"item_index": i, "scope_item": it["description"], "qty": it["qty"], "unit": it["unit"],
-                  "candidates": [{k: c[k] for k in ("id", "name", "unit", "unit_price")} for c in state["candidates"][str(i)]]}
-                 for i, it in enumerate(items)]
-        feedback = f"\nReviewer feedback on the previous draft: {state['notes']}" if state.get("notes") else ""
-        choices = llm.structured(
-            [{"role": "system", "content": "For each scope item choose the best matching candidate price item by id, "
-                                           "or null if none fits. Match the unit. Do not invent ids. Do not calculate prices."},
-             {"role": "user", "content": json.dumps(offer) + feedback}], Choices, purpose="estimate")
-        return {"choices": choices.model_dump()}
+        offer = build_offer(state["scope"]["items"], state["candidates"])
+        return {"choices": choose_prices(llm, offer, state.get("notes", "")).model_dump()}
 
     def build_draft(state: State) -> dict:
         items = state["scope"]["items"]

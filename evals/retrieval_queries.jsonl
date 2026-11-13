@@ -1,0 +1,74 @@
+{"id": "q001", "split": "dev", "gold": "Concrete 25MPa ready-mix", "query": "supply and place 25 MPa concrete to the slab", "kind": "tender_style"}
+{"id": "q002", "split": "dev", "gold": "Concrete 32MPa ready-mix", "query": "32 MPa ready mixed concrete for the suspended beams", "kind": "paraphrase"}
+{"id": "q003", "split": "test", "gold": "Reinforcing mesh SL82 6m x 2.4m", "query": "SL82 mesh to slab, 6 sheets", "kind": "spec"}
+{"id": "q004", "split": "test", "gold": "Reinforcing bar N12 12m", "query": "N12 starter bars 12 m lengths", "kind": "spec"}
+{"id": "q005", "split": "test", "gold": "Formwork hire per lineal metre", "query": "edge formwork to the slab perimeter", "kind": "paraphrase"}
+{"id": "q006", "split": "test", "gold": "Vapour barrier membrane 200um", "query": "plastic underlay beneath slab, 200 micron", "kind": "jargon"}
+{"id": "q007", "split": "test", "gold": "Concrete pump hire per half day", "query": "boom pump for the pour, half day", "kind": "jargon"}
+{"id": "q008", "split": "test", "gold": "Concrete slab finishing labour", "query": "power float and finish the slab", "kind": "jargon"}
+{"id": "q009", "split": "test", "gold": "Excavator hire 8t with operator", "query": "hire an 8 tonne digger with driver", "kind": "paraphrase"}
+{"id": "q010", "split": "test", "gold": "Site cut and level", "query": "level the building pad", "kind": "paraphrase"}
+{"id": "q011", "split": "dev", "gold": "Compacted road base 20mm", "query": "20 mm crushed rock sub-base to driveway", "kind": "paraphrase"}
+{"id": "q012", "split": "test", "gold": "Soil removal to tip", "query": "cart away excess spoil", "kind": "jargon"}
+{"id": "q013", "split": "test", "gold": "Tipper truck hire", "query": "tipper truck for spoil cartage", "kind": "paraphrase"}
+{"id": "q014", "split": "dev", "gold": "Sediment fencing", "query": "silt fence around the site boundary", "kind": "jargon"}
+{"id": "q015", "split": "test", "gold": "Structural steel beam 200UB25", "query": "200UB25 steel beam over the opening", "kind": "spec"}
+{"id": "q016", "split": "test", "gold": "Structural steel column 150PFC", "query": "150 PFC column to the carport", "kind": "spec"}
+{"id": "q017", "split": "dev", "gold": "Steel lintel 150x90x8 angle", "query": "angle lintel 150x90x8 above the window", "kind": "spec"}
+{"id": "q018", "split": "dev", "gold": "Base plate and fixings set", "query": "base plates and bolts for the steel columns", "kind": "paraphrase"}
+{"id": "q019", "split": "test", "gold": "Steel erection labour", "query": "labour to erect the steelwork", "kind": "paraphrase"}
+{"id": "q020", "split": "test", "gold": "Shop drawings and certification", "query": "engineer's certified detail drawings for steel", "kind": "paraphrase"}
+{"id": "q021", "split": "dev", "gold": "Treated pine framing 90x45 MGP10", "query": "90x45 pine studs for internal walls", "kind": "spec"}
+{"id": "q022", "split": "dev", "gold": "Treated pine framing 140x45 MGP10", "query": "140 x 45 treated framing to external walls", "kind": "spec"}
+{"id": "q023", "split": "dev", "gold": "LVL beam 240x45", "query": "240 x 45 LVL bearer", "kind": "spec"}
+{"id": "q024", "split": "dev", "gold": "Roof truss supply and install", "query": "trusses delivered and craned on", "kind": "jargon"}
+{"id": "q025", "split": "dev", "gold": "Plywood structural floor 19mm", "query": "19 mm structural ply flooring", "kind": "spec"}
+{"id": "q026", "split": "test", "gold": "Hardwood decking 86x19", "query": "hardwood decking boards 86 x 19", "kind": "spec"}
+{"id": "q027", "split": "test", "gold": "Carpenter labour", "query": "chippy hours for the fit out", "kind": "jargon"}
+{"id": "q028", "split": "test", "gold": "Wall frame prefabricated", "query": "prefab wall frames, supply only", "kind": "paraphrase"}
+{"id": "q029", "split": "dev", "gold": "Colorbond roof sheeting supply and fix", "query": "metal roofing sheets to the new roof, fixed", "kind": "paraphrase"}
+{"id": "q030", "split": "dev", "gold": "Roof insulation R3.5 batts", "query": "R3.5 ceiling insulation", "kind": "spec"}
+{"id": "q031", "split": "dev", "gold": "Gutter and downpipe set", "query": "guttering and downpipes", "kind": "paraphrase"}
+{"id": "q032", "split": "dev", "gold": "Sarking foil", "query": "reflective foil under the roof sheets", "kind": "jargon"}
+{"id": "q033", "split": "dev", "gold": "Roof plumber labour", "query": "roof plumber for flashings, per hour", "kind": "paraphrase"}
+{"id": "q034", "split": "dev", "gold": "Ridge capping", "query": "cap the ridge line", "kind": "jargon"}
+{"id": "q035", "split": "dev", "gold": "Common brick laid", "query": "standard clay bricks laid to the garage", "kind": "paraphrase"}
+{"id": "q036", "split": "test", "gold": "Concrete block 190 laid", "query": "190 mm blockwork to the boundary wall", "kind": "spec"}
+{"id": "q037", "split": "test", "gold": "Brick tie and damp course set", "query": "wall ties and damp proof course", "kind": "paraphrase"}
+{"id": "q038", "split": "test", "gold": "Bricklayer labour", "query": "bricky labour", "kind": "jargon"}
+{"id": "q039", "split": "dev", "gold": "Render and finish", "query": "cement render to external walls", "kind": "paraphrase"}
+{"id": "q040", "split": "dev", "gold": "Retaining wall block system", "query": "segmental retaining wall system", "kind": "paraphrase"}
+{"id": "q041", "split": "test", "gold": "Copper pipe 20mm", "query": "20 mm copper water pipe", "kind": "spec"}
+{"id": "q042", "split": "test", "gold": "PVC stormwater pipe 100mm", "query": "100 mm PVC stormwater line", "kind": "spec"}
+{"id": "q043", "split": "dev", "gold": "Hot water system 250L electric", "query": "250 L electric hot water heater", "kind": "paraphrase"}
+{"id": "q044", "split": "dev", "gold": "Floor waste and fixtures set", "query": "floor wastes and bathroom fixtures", "kind": "paraphrase"}
+{"id": "q045", "split": "test", "gold": "Plumber labour", "query": "plumber hours for rough-in", "kind": "paraphrase"}
+{"id": "q046", "split": "test", "gold": "Sewer connection and inspection", "query": "sewer tie-in with council inspection", "kind": "paraphrase"}
+{"id": "q047", "split": "test", "gold": "Cable TPS 2.5mm", "query": "2.5 mm TPS cable for power circuits", "kind": "spec"}
+{"id": "q048", "split": "dev", "gold": "Switchboard 12 circuit", "query": "new 12-way switchboard", "kind": "paraphrase"}
+{"id": "q049", "split": "test", "gold": "Downlight LED supply and install", "query": "LED downlights, supplied and installed", "kind": "tender_style"}
+{"id": "q050", "split": "test", "gold": "Power point double supply and install", "query": "double GPOs", "kind": "jargon"}
+{"id": "q051", "split": "test", "gold": "Electrician labour", "query": "sparky hours", "kind": "jargon"}
+{"id": "q052", "split": "test", "gold": "Smoke alarm interconnected", "query": "hard-wired interlinked smoke alarms", "kind": "paraphrase"}
+{"id": "q053", "split": "test", "gold": "Plasterboard 10mm fix and set", "query": "10 mm gyprock hung and finished", "kind": "jargon"}
+{"id": "q054", "split": "test", "gold": "Internal paint two coats", "query": "two coat paint finish to walls", "kind": "paraphrase"}
+{"id": "q055", "split": "dev", "gold": "Floor tiles supply and lay", "query": "supply and lay floor tiles", "kind": "tender_style"}
+{"id": "q056", "split": "test", "gold": "Waterproofing membrane wet area", "query": "waterproof the bathroom floor", "kind": "paraphrase"}
+{"id": "q057", "split": "dev", "gold": "Painter labour", "query": "painter labour per hour", "kind": "paraphrase"}
+{"id": "q058", "split": "dev", "gold": "Kitchen cabinetry standard", "query": "standard kitchen cabinets per lineal metre", "kind": "paraphrase"}
+{"id": "q059", "split": "dev", "gold": "Scaffold hire per week", "query": "scaffold for two storey walls", "kind": "paraphrase"}
+{"id": "q060", "split": "test", "gold": "Site toilet hire per week", "query": "portable toilet on site", "kind": "jargon"}
+{"id": "q061", "split": "test", "gold": "Skip bin 6m3", "query": "6 cubic metre skip", "kind": "paraphrase"}
+{"id": "q062", "split": "test", "gold": "Crane truck hire", "query": "franna crane hire", "kind": "jargon"}
+{"id": "q063", "split": "test", "gold": "Site supervisor", "query": "foreman on site per day", "kind": "paraphrase"}
+{"id": "q064", "split": "test", "gold": "Building permit and fees", "query": "council and building approval fees", "kind": "paraphrase"}
+{"id": "q065", "split": "test", "gold": "Insurance and compliance allowance", "query": "contract works insurance allowance", "kind": "paraphrase"}
+{"id": "q066", "split": "test", "gold": "Survey and set out", "query": "set out by a surveyor", "kind": "paraphrase"}
+{"id": "q067", "split": "test", "gold": null, "query": "solar panel array installation", "kind": "negative"}
+{"id": "q068", "split": "dev", "gold": null, "query": "swimming pool excavation and fibreglass shell", "kind": "negative"}
+{"id": "q069", "split": "test", "gold": null, "query": "passenger lift installation", "kind": "negative"}
+{"id": "q070", "split": "test", "gold": null, "query": "split system air conditioning supply", "kind": "negative"}
+{"id": "q071", "split": "dev", "gold": null, "query": "asbestos removal and disposal", "kind": "negative"}
+{"id": "q072", "split": "test", "gold": null, "query": "landscaping and turf supply", "kind": "negative"}
+{"id": "q073", "split": "test", "gold": null, "query": "CCTV cameras and recorder", "kind": "negative"}
+{"id": "q074", "split": "test", "gold": null, "query": "bitumen driveway sealing", "kind": "negative"}

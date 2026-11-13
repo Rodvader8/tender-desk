@@ -12,3 +12,8 @@ def _model():
 
 def embed(texts: list[str]) -> list[np.ndarray]:
     return [np.asarray(v, dtype=np.float32) for v in _model().embed(texts)]
+
+
+def embed_query(texts: list[str]) -> list[np.ndarray]:
+    """BGE models are trained to see search queries with an instruction prefix; fastembed adds it here."""
+    return [np.asarray(v, dtype=np.float32) for v in _model().query_embed(texts)]
