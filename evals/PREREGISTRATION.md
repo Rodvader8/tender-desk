@@ -12,3 +12,10 @@ Success on `evals/holdout2.jsonl` (fresh slang the fix has never seen, plus plai
 - selection eval: no new false matches on the near-miss negatives.
 
 If it fails these, it is not wired into the workflow and the README says so.
+
+## Added after the tuning-set run, before holdout2 was run
+
+The tuning set has too little slang to separate the strategies: plain vector, rewrite only and rewrite fused all scored 96% hit@4 there.
+So holdout2 is run once with all three and every number is reported. Adoption rule, fixed now:
+- A variant is adopted only if it meets the three success criteria above.
+- If both rewrite variants pass, adopt rewrite only (simpler), unless fused beats it on holdout2 hit@4 by two or more queries.

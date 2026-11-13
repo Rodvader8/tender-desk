@@ -15,14 +15,28 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def load(split: str) -> list[dict]:
+    if split == "holdout2":
+        return [json.loads(l) for l in (ROOT / "evals" / "holdout2.jsonl").read_text().splitlines()]
     rows = [json.loads(l) for l in (ROOT / "evals" / "retrieval_queries.jsonl").read_text().splitlines()]
     return rows if split == "all" else [r for r in rows if r["split"] == split]
 
 
-def evaluate(cat: Catalogue, rows: list[dict], conn) -> dict:
+REWRITE_CACHE = ROOT / "evals" / "rewrite_cache.json"
+
+
+def attach_rewrites(cat, rows: list[dict], model: str = "deepseek/deepseek-v4-flash") -> float:
+    """Rewrite every query (cached), attach to the catalogue, return the spend."""
+    from ..llm import LLM, Limits
+    from ..rewrite import rewrite_queries
+    llm = LLM(model=model, limits=Limits(run_cap=0.05))
+    cat.rewrites.update(rewrite_queries(llm, [r["query"] for r in rows], cache_path=REWRITE_CACHE))
+    return llm.guard.run_spent
+
+
+def evaluate(cat: Catalogue, rows: list[dict], conn, strategies=Catalogue.STRATEGIES) -> dict:
     name_to_id = {n: i for n, i in conn.execute("SELECT name, id FROM price_items").fetchall()}
     out = {}
-    for s in Catalogue.STRATEGIES:
+    for s in strategies:
         fn = getattr(cat, s)
         pos, neg_top, pos_top, by_kind, fails, ms = [], [], [], {}, [], []
         for r in rows:
@@ -52,9 +66,14 @@ def table(res: dict) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser(); ap.add_argument("--split", default="dev"); ap.add_argument("--write", action="store_true")
+    ap.add_argument("--rewrite", action="store_true", help="compare rewrite strategies against plain vector search")
     a = ap.parse_args()
     conn = connect(); cat = Catalogue(conn); rows = load(a.split)
-    res = evaluate(cat, rows, conn)
+    strategies = Catalogue.STRATEGIES
+    if a.rewrite:
+        print(f"rewrite cost ${attach_rewrites(cat, rows):.5f}")
+        strategies = ("vec_current", "rewrite_only", "rewrite_fused")
+    res = evaluate(cat, rows, conn, strategies)
     print(f"split={a.split}  queries={len(rows)}\n"); print(table(res))
     for s, r in res.items():
         print(f"\n{s}: top-1 misses {len(r['top1_misses'])}")
@@ -62,7 +81,7 @@ def main() -> None:
             print(f"   {m['query']!r}: wanted {m['gold']!r} (rank {m['gold_rank']}), got {m['got']!r}")
     if a.write:
         (ROOT / "results").mkdir(exist_ok=True)
-        (ROOT / "results" / f"retrieval_{a.split}.json").write_text(json.dumps(res, indent=2))
+        (ROOT / "results" / f"retrieval_{a.split}{'_rewrite' if a.rewrite else ''}.json").write_text(json.dumps(res, indent=2))
 
 
 if __name__ == "__main__":
