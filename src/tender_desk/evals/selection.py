@@ -21,8 +21,12 @@ ROOT = Path(__file__).resolve().parents[3]
 BATCH = 10
 
 
-def run(model: str, run_cap: float, split: str = "all") -> dict:
+def run(model: str, run_cap: float, split: str = "all", retrieval: str = "vec_current") -> dict:
     conn = connect(); cat = Catalogue(conn); rows = load(split)
+    if retrieval.startswith("rewrite"):
+        from .retrieval import attach_rewrites
+        attach_rewrites(cat, rows)
+    search = getattr(cat, retrieval)
     name_to_id = {n: i for n, i in conn.execute("SELECT name, id FROM price_items").fetchall()}
     info = {r[0]: dict(id=r[0], name=r[1], unit=r[2], unit_price=float(r[3])) for r in
             conn.execute("SELECT id, name, unit, unit_price FROM price_items").fetchall()}
@@ -31,7 +35,7 @@ def run(model: str, run_cap: float, split: str = "all") -> dict:
     for b in range(0, len(rows), BATCH):
         chunk = rows[b:b + BATCH]
         items = [{"description": r["query"], "qty": 1, "unit": "unspecified"} for r in chunk]
-        cands = {str(i): [info[x] for x in cat.vec_current(r["query"])[0][:4]] for i, r in enumerate(chunk)}
+        cands = {str(i): [info[x] for x in search(r["query"])[0][:4]] for i, r in enumerate(chunk)}
         picks = {c.item_index: c.price_item_id for c in choose_prices(llm, build_offer(items, cands), purpose="eval-selection").choices}
         for i, r in enumerate(chunk):
             offered = [c["id"] for c in cands[str(i)]]
@@ -42,7 +46,7 @@ def run(model: str, run_cap: float, split: str = "all") -> dict:
                              correct=(pick == gold and not (pick is not None and pick not in offered)) if gold else pick is None))
     pos = [r for r in recs if r["gold"]]; neg = [r for r in recs if not r["gold"]]
     offered = [r for r in pos if r["offered"]]
-    out = dict(model=model, queries=len(recs), cost_usd=round(llm.guard.run_spent, 5),
+    out = dict(model=model, retrieval=retrieval, split=split, queries=len(recs), cost_usd=round(llm.guard.run_spent, 5),
                end_to_end_accuracy=round(sum(r["correct"] for r in pos) / len(pos), 3),
                accuracy_when_offered=round(sum(r["correct"] for r in offered) / len(offered), 3),
                right_item_not_offered=len(pos) - len(offered),
@@ -57,16 +61,16 @@ def run(model: str, run_cap: float, split: str = "all") -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser(); ap.add_argument("--model", required=True); ap.add_argument("--run-cap", type=float, default=0.10)
-    ap.add_argument("--split", default="all"); ap.add_argument("--write", action="store_true"); a = ap.parse_args()
-    o = run(a.model, a.run_cap, a.split)
-    print(f"{o['model']}: {o['queries']} queries, cost ${o['cost_usd']}")
+    ap.add_argument("--split", default="all"); ap.add_argument("--retrieval", default="vec_current"); ap.add_argument("--write", action="store_true"); a = ap.parse_args()
+    o = run(a.model, a.run_cap, a.split, a.retrieval)
+    print(f"{o['model']} / {o['retrieval']} / {o['split']}: {o['queries']} queries, cost ${o['cost_usd']}")
     for k in ("end_to_end_accuracy", "accuracy_when_offered", "right_item_not_offered", "wrong_pick", "wrongly_abstained", "invalid_ids", "false_match_rate"):
         print(f"  {k:<24}{o[k]}")
     for e in o["errors"]:
         print(f"   ! {e['query']!r}: wanted {e['gold']!r}, picked {e['pick']!r}, offered={e['offered']}")
     if a.write:
         (ROOT / "results").mkdir(exist_ok=True)
-        (ROOT / "results" / f"selection_{a.model.replace('/', '_')}.json").write_text(json.dumps(o, indent=2))
+        (ROOT / "results" / f"selection_{a.split}_{a.retrieval}_{a.model.replace('/', '_')}.json").write_text(json.dumps(o, indent=2))
 
 
 if __name__ == "__main__":
