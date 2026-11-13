@@ -33,7 +33,7 @@ Design rules, each enforced in code and covered by a test:
 docker compose up -d                       # Postgres 17 + pgvector, seeded from sql/
 uv sync
 uv run python scripts/seed.py              # invented price list, 30 past jobs
-uv run pytest                              # 19 tests, no API cost
+uv run pytest                              # 24 tests, no API cost
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
 ```
@@ -101,15 +101,38 @@ The third criterion was no new false matches on the near-miss negatives. **It fa
 
 So **the rewrite is not wired into the workflow**, and its code and cached results stay in the repo as an evaluated option. More important: a stronger model will quietly quote the nearest wrong size or grade when the exact spec is missing, and the current checks (unit match, offered-candidates-only) don't catch that. With n=4 per model I would not claim DeepSeek is better at it, only that this failure exists and is measurable.
 
+### 4. The fix for wrong sizes and grades: a check in code, not a better prompt
+
+`specs.py` pulls typed spec tokens (MPa, mm, litres, N-bar grade, SL mesh, R-value, UB and PFC sections, dimensions like 140x45, microns) out of the tender line and out of the item the model picked. If both carry the same type of spec and the values differ, the pick is **rejected, the line is left unpriced, and the reviewer is told why** ("tender asks N bar 16, price list item is 12, closest item: Reinforcing bar N12 12m"). Quantities and areas (m2, weeks, hours, "8 off") are ignored by design. No model is involved, so it behaves the same whichever model picks.
+
+Test pairs and criteria were written and committed before the checker existed (`evals/spec_pairs.jsonl`, `evals/PREREGISTRATION_SPEC_CHECK.md`). Scored once:
+
+| | result |
+|---|---|
+| wrong-spec pairs caught | **23 of 24** (96%) |
+| correct pairs wrongly flagged (written in different spellings: "25 meg", "20 mil", "R 3.5", "200 UB 25", "6 x 3 m site size") | **0 of 41** |
+| the one miss | "140 mm blockwork" against "Concrete block 190 laid": the item name has a bare number and no unit, so it has no typed spec. A documented gap, not fixed |
+
+End to end, re-running the fresh near-miss set with the check in the workflow rules:
+
+| model | false matches before | false matches now | real queries still answered correctly when offered |
+|---|---|---|---|
+| deepseek-v4-flash | 0 of 6 | 0 of 6 | 100% |
+| claude-haiku-5.5 | 2 of 6 (4 with the rewrite) | **0 of 6**, with or without the rewrite | 100% |
+
+On the original 74 queries the check blocked nothing, so no correct line was wrongly refused.
+
+**Status of the slang rewrite:** with the spec check in place it no longer causes false matches, so it now clears the criteria I set for it. I have still not wired it in: the gain is two queries out of 34 on a fresh set that has now been looked at three times, and it adds a model call and a cache for that. It stays an evaluated option until there is a larger slang set to justify it.
+
 ### What these numbers do not show
 
-- **Small and invented.** 66 catalogue items, 74 queries plus 40 in the fresh set, one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
+- **Small and invented.** 66 catalogue items, 74 queries plus 40 in the fresh set (looked at several times now, so treat it as used), one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
 - **The labels were written by the AI assistant that helped build this, from the catalogue, and not independently reviewed.** Treat them as a first version.
 - **The "not in the catalogue" cases are easy** (swimming pools, lifts). There are no near-miss cases such as asking for N16 bar when only N12 exists, so the 0% false-match rate is weaker evidence than it looks.
 - No measure of the draft's dollar accuracy against real quotes, because there are none.
 
 ## Status
 
-Working: the full workflow, the evaluation harness, 19 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the evaluation harness, 24 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
-Next: a code-side spec check, so a quote can never silently use a different size or grade than the tender asked for (then re-test the rewrite against it, on a fresh near-miss set); a Postgres checkpointer for the live run (the demo uses an in-memory one), an HTTP API and approval screen, prompt-injection and guardrail tests, observability.
+Next: a Postgres checkpointer for the live run (the demo uses an in-memory one), an HTTP API and approval screen, prompt-injection and guardrail tests, observability.

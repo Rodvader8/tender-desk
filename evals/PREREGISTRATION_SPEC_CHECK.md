@@ -4,7 +4,7 @@ Problem: when the exact size or grade isn't in the catalogue, a model can quietl
 
 Plan: a deterministic check in code, no model. It pulls typed spec tokens (MPa, mm, litres, N-bar grade, SL mesh, R-value, UB and PFC sections, dimensions like 140x45, microns) out of the tender line and out of the chosen item's name. If the tender line and the item both carry a spec of the same type and the values differ, the pick is rejected and flagged. Numbers that are quantities or areas (m2, m3, weeks, hours, "8 off") are ignored by design.
 
-Test: `evals/spec_pairs.jsonl`, 24 conflict pairs and 38 same-spec pairs written in different spellings ("25 meg", "20 mil", "R 3.5", "200 UB 25"). Scored once.
+Test: `evals/spec_pairs.jsonl`, 24 conflict pairs and 41 same-spec pairs (count corrected after writing; the pairs themselves were frozen in the previous commit) written in different spellings ("25 meg", "20 mil", "R 3.5", "200 UB 25"). Scored once.
 
 Success criteria:
 - at least 90% of conflict pairs caught,

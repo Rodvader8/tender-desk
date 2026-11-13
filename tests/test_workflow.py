@@ -126,3 +126,13 @@ def test_unit_spellings_match_but_real_mismatches_still_flag(conn):
     ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="exact")])
     _, _, _, res = run(conn, FakeLLM(scope, [ch]))
     assert res["__interrupt__"][0].value["draft"]["flags"] == []
+
+
+def test_wrong_size_is_not_priced_even_if_the_model_picks_it(conn):
+    scope = Scope(job_summary="x", items=[ScopeItem(description="N16 reinforcing bar 12 m lengths", qty=20, unit="length")])
+    ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Reinforcing bar N12 12m"), confidence="high", reason="closest")])
+    # make sure the near-miss is actually among the candidates the model could pick
+    _, _, _, res = run(conn, FakeLLM(scope, [ch]))
+    line = res["__interrupt__"][0].value["draft"]["lines"][0]
+    assert line["line_total"] == 0.0 and line["price_item_id"] is None
+    assert any("spec differs" in f and "N12" in f for f in line["flags"])

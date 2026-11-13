@@ -22,6 +22,7 @@ from langgraph.types import Command, interrupt
 from .models import Choices, Draft, QuoteLine, Scope
 from .pricing import build_offer, choose_prices
 from .search import comparable_jobs, price_candidates
+from .specs import spec_conflicts
 from .units import normalise_unit
 
 MIN_MARGIN = 12.0   # policy floor, percent
@@ -86,6 +87,11 @@ def build_graph(llm, conn, checkpointer):
                 lf.append("model chose an item that was not offered, rejected")
             else:
                 picked = offered[ch["price_item_id"]]
+                clash = spec_conflicts(it["description"], picked["name"])
+                if clash:  # a wrong size or grade is worse than no price: reject the pick, leave it for the reviewer
+                    lf.append(f"spec differs, not priced: {'; '.join(clash)} (closest item: {picked['name']})")
+                    picked = None
+            if picked is not None:
                 if normalise_unit(picked["unit"]) != normalise_unit(it["unit"]):
                     lf.append(f"unit mismatch: tender says {it['unit']}, price list says {picked['unit']}")
                 if ch["confidence"] == "low":
