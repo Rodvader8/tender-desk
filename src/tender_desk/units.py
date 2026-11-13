@@ -13,6 +13,15 @@ _CANON = {
 }
 
 
+# 'each', 'sheet' and 'length' are all counts of things. A tender may say "5 sheets" or "5 each" for the same mesh.
+COUNT_UNITS = {"each", "sheet", "length"}
+
+
+def units_compatible(a: str, b: str) -> bool:
+    a, b = normalise_unit(a), normalise_unit(b)
+    return a == b or (a in COUNT_UNITS and b in COUNT_UNITS)
+
+
 def normalise_unit(u: str) -> str:
     """'m2', 'm²', 'sqm' and 'm² footprint' all become 'm2'. Extra trailing words are tolerated."""
     words = re.sub(r"[,;()]", " ", u.lower()).split()

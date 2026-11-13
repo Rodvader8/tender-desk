@@ -15,10 +15,12 @@ class Defenses:
     bounds: bool = False           # cap what extraction may return (line count, text length, quantity)
     qty_check: bool = False        # flag an extracted quantity that does not appear in the tender text
     detector: bool = False         # flag instruction-like phrases in the tender text
+    coverage: bool = False         # flag when fewer items were extracted than the tender numbers
 
 
 D0 = Defenses()
 D1 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True)
+D2 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True, coverage=True)  # exploratory, added after seeing D0/D1 test results
 
 _TAGS = re.compile(r"<\s*/?\s*(tender|instructions?|system|assistant|user)\s*>", re.I)
 
@@ -59,3 +61,8 @@ def injection_phrases(text: str) -> list[str]:
     hits = [m.group(0).strip() for p in _PATTERNS for m in re.finditer(p, text, re.I)]
     hits += [m.group(0) for m in _LEET.finditer(text) if any(c.isdigit() for c in m.group(0))]
     return list(dict.fromkeys(h[:60] for h in hits))
+
+
+def numbered_items(text: str) -> int:
+    """How many lines of the tender start with '1.' or '2)' style numbering."""
+    return len(re.findall(r"(?m)^\s*\d{1,2}[.)]\s+\S", text))
