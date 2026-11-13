@@ -33,7 +33,7 @@ Design rules, each enforced in code and covered by a test:
 docker compose up -d                       # Postgres 17 + pgvector, seeded from sql/
 uv sync
 uv run python scripts/seed.py              # invented price list, 30 past jobs
-uv run pytest                              # 34 tests, no API cost
+uv run pytest                              # 36 tests, no API cost
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
 ```
@@ -182,6 +182,8 @@ What these results actually say:
 
 Still unsolved, in order of concern: lines dropped because the tender "told" the model to (indistinguishable from a client genuinely supplying a material), quantities changed by an instruction that includes the new number, and instruction text leaking into line descriptions. The attacks were written by the same AI assistant that helped build the defences, so a human red team would likely do better.
 
+**Switched on by default: D2.** D1 was the pre-registered set, but D2 adds the line-coverage check, which targets the one kind of attack D1 let through silently. It only raises a flag and never blocks, so its worst case is an extra warning for the reviewer. The honest caveat is that D2's evidence is exploratory, not clean (see above). To compare or switch off: `TENDER_DESK_DEFENSES=D0` (none), `D1`, or `D2` (default), or pass `defenses=` to `build_graph`. The sample tender prices identically with D2 on and raises no false flags; a live injection ("Ignore all previous instructions...") is flagged on the draft.
+
 ### What these numbers do not show
 
 - **Small and invented.** 66 catalogue items, 74 queries plus 40 in the fresh set (looked at several times now, so treat it as used), one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
@@ -191,8 +193,8 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 34 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the API and approval screen, the evaluation harness, 36 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
-Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. Defences D1 and D2 are built and measured but not switched on by default: `build_graph(..., defenses=D1)`.
+Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. 
 
 **Observed while building the screen:** the model sometimes merges two tender items into one line (it merged concrete and mesh in one live run and split them in the next). The workflow flags the merged line as unpriced rather than guessing, but extraction is not deterministic and is not yet evaluated.

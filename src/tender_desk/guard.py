@@ -4,6 +4,7 @@ Each defence is switchable (see Defenses) so the evaluation can measure what it 
 """
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 
@@ -21,6 +22,11 @@ class Defenses:
 D0 = Defenses()
 D1 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True)
 D2 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True, coverage=True)  # exploratory, added after seeing D0/D1 test results
+
+def default_defenses() -> Defenses:
+    """D2 unless TENDER_DESK_DEFENSES says otherwise (D0 = none, D1, D2). D2's evidence is partly exploratory, see the README."""
+    return {"D0": D0, "D1": D1, "D2": D2}[os.environ.get("TENDER_DESK_DEFENSES", "D2").upper()]
+
 
 _TAGS = re.compile(r"<\s*/?\s*(tender|instructions?|system|assistant|user)\s*>", re.I)
 

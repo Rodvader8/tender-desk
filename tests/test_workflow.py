@@ -109,7 +109,7 @@ def test_unit_spellings_match_but_real_mismatches_still_flag(conn):
     assert normalise_unit("lump sum") == normalise_unit("each") and normalise_unit("sheets") == "sheet"
     assert normalise_unit("m2") != normalise_unit("m")
     assert normalise_unit("m² footprint") == "m2" and normalise_unit("lump sum, allowance") == "each" and normalise_unit("lineal metres of framing") == "m"
-    scope = Scope(job_summary="x", items=[ScopeItem(description="25MPa concrete", qty=5, unit="m³")])
+    scope = Scope(job_summary="x", items=[ScopeItem(description="25MPa concrete", qty=10, unit="m³")])  # 10 appears in the tender text
     ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="exact")])
     _, _, _, res = run(conn, FakeLLM(scope, [ch]))
     assert res["__interrupt__"][0].value["draft"]["flags"] == []
@@ -162,3 +162,17 @@ def test_a_hostile_model_cannot_set_prices_approve_or_save(conn):
     assert draft["lines"][1]["line_total"] == 0.0 and any("not offered" in f for f in draft["flags"])  # invented id rejected
     assert conn.execute("SELECT status FROM tenders WHERE id=%s", (tid,)).fetchone()[0] == "awaiting_approval"
     assert conn.execute("SELECT count(*) FROM quotes WHERE tender_id=%s", (tid,)).fetchone()[0] == 0
+
+
+def test_defences_are_on_by_default_and_can_be_switched_off(conn, monkeypatch):
+    from tender_desk.guard import D0, D2, default_defenses
+    assert default_defenses() == D2
+    monkeypatch.setenv("TENDER_DESK_DEFENSES", "d0")
+    assert default_defenses() == D0
+
+
+def test_default_defences_flag_a_quantity_that_is_not_in_the_tender(conn):
+    scope = Scope(job_summary="x", items=[ScopeItem(description="supply 25MPa concrete", qty=500, unit="m3")])
+    ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="x")])
+    _, _, _, res = run(conn, FakeLLM(scope, [ch]))
+    assert any("500 does not appear in the tender text" in f for f in res["__interrupt__"][0].value["draft"]["flags"])

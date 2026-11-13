@@ -19,7 +19,7 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
-from .guard import D0, Defenses, injection_phrases, neutralise, numbered_items, quantity_in_text
+from .guard import D0, Defenses, default_defenses, injection_phrases, neutralise, numbered_items, quantity_in_text
 from .models import BoundedScope, Choices, Draft, QuoteLine, Scope
 from .pricing import build_offer, choose_prices
 from .search import comparable_jobs, price_candidates
@@ -51,7 +51,8 @@ def audit(conn, tender_id: int | None, event: str, **detail: Any) -> None:
                  (tender_id, event, json.dumps(detail, default=str)))
 
 
-def build_graph(llm, conn, checkpointer, defenses: Defenses = D0):
+def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
+    defenses = defenses if defenses is not None else default_defenses()
     def extract(state: State) -> dict:
         d = defenses
         system = ("You extract a scope of work from a construction tender. Split compound lines so each item is ONE thing to price "
