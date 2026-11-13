@@ -1,0 +1,65 @@
+{"id": "s001", "query": "N16 reinforcing bar 12 m lengths", "item": "Reinforcing bar N12 12m", "expect": "conflict"}
+{"id": "s002", "query": "N20 bar to the pile cages", "item": "Reinforcing bar N12 12m", "expect": "conflict"}
+{"id": "s003", "query": "SL92 mesh to the slab", "item": "Reinforcing mesh SL82 6m x 2.4m", "expect": "conflict"}
+{"id": "s004", "query": "SL72 reo mesh", "item": "Reinforcing mesh SL82 6m x 2.4m", "expect": "conflict"}
+{"id": "s005", "query": "40 MPa concrete for the transfer slab", "item": "Concrete 32MPa ready-mix", "expect": "conflict"}
+{"id": "s006", "query": "20 MPa concrete for the path", "item": "Concrete 25MPa ready-mix", "expect": "conflict"}
+{"id": "s007", "query": "50 meg concrete", "item": "Concrete 32MPa ready-mix", "expect": "conflict"}
+{"id": "s008", "query": "310UB40 steel beam", "item": "Structural steel beam 200UB25", "expect": "conflict"}
+{"id": "s009", "query": "250UB37 beam over the door", "item": "Structural steel beam 200UB25", "expect": "conflict"}
+{"id": "s010", "query": "100 PFC column", "item": "Structural steel column 150PFC", "expect": "conflict"}
+{"id": "s011", "query": "90 x 90 treated pine posts", "item": "Treated pine framing 90x45 MGP10", "expect": "conflict"}
+{"id": "s012", "query": "300 litre electric hot water system", "item": "Hot water system 250L electric", "expect": "conflict"}
+{"id": "s013", "query": "125 L electric hot water unit", "item": "Hot water system 250L electric", "expect": "conflict"}
+{"id": "s014", "query": "R2.5 ceiling batts", "item": "Roof insulation R3.5 batts", "expect": "conflict"}
+{"id": "s015", "query": "R5.0 roof insulation", "item": "Roof insulation R3.5 batts", "expect": "conflict"}
+{"id": "s016", "query": "150 mm PVC stormwater pipe", "item": "PVC stormwater pipe 100mm", "expect": "conflict"}
+{"id": "s017", "query": "75 mm PVC stormwater pipe", "item": "PVC stormwater pipe 100mm", "expect": "conflict"}
+{"id": "s018", "query": "15 mm copper pipe for the hot line", "item": "Copper pipe 20mm", "expect": "conflict"}
+{"id": "s019", "query": "32 mm copper water pipe", "item": "Copper pipe 20mm", "expect": "conflict"}
+{"id": "s020", "query": "40 mm crushed rock road base", "item": "Compacted road base 20mm", "expect": "conflict"}
+{"id": "s021", "query": "6 mm structural ply flooring", "item": "Plywood structural floor 19mm", "expect": "conflict"}
+{"id": "s022", "query": "6 mm gyprock hung and set", "item": "Plasterboard 10mm fix and set", "expect": "conflict"}
+{"id": "s023", "query": "300 micron plastic underlay", "item": "Vapour barrier membrane 200um", "expect": "conflict"}
+{"id": "s024", "query": "140 mm blockwork to the wall", "item": "Concrete block 190 laid", "expect": "conflict"}
+{"id": "s025", "query": "25 MPa concrete to the slab, 8 m3", "item": "Concrete 25MPa ready-mix", "expect": "ok"}
+{"id": "s026", "query": "supply 25MPa concrete", "item": "Concrete 25MPa ready-mix", "expect": "ok"}
+{"id": "s027", "query": "25 meg ready mix", "item": "Concrete 25MPa ready-mix", "expect": "ok"}
+{"id": "s028", "query": "32 meg concrete for beams", "item": "Concrete 32MPa ready-mix", "expect": "ok"}
+{"id": "s029", "query": "SL82 mesh, 6 sheets", "item": "Reinforcing mesh SL82 6m x 2.4m", "expect": "ok"}
+{"id": "s030", "query": "SL82 reo mesh", "item": "Reinforcing mesh SL82 6m x 2.4m", "expect": "ok"}
+{"id": "s031", "query": "N12 bars at 300 centres", "item": "Reinforcing bar N12 12m", "expect": "ok"}
+{"id": "s032", "query": "N12 starter bars", "item": "Reinforcing bar N12 12m", "expect": "ok"}
+{"id": "s033", "query": "200UB25 beam", "item": "Structural steel beam 200UB25", "expect": "ok"}
+{"id": "s034", "query": "200 UB 25 beam over the opening", "item": "Structural steel beam 200UB25", "expect": "ok"}
+{"id": "s035", "query": "150 PFC column", "item": "Structural steel column 150PFC", "expect": "ok"}
+{"id": "s036", "query": "angle lintel 150 x 90 x 8", "item": "Steel lintel 150x90x8 angle", "expect": "ok"}
+{"id": "s037", "query": "90 x 45 pine studs", "item": "Treated pine framing 90x45 MGP10", "expect": "ok"}
+{"id": "s038", "query": "140x45 framing", "item": "Treated pine framing 140x45 MGP10", "expect": "ok"}
+{"id": "s039", "query": "240 x 45 LVL bearer", "item": "LVL beam 240x45", "expect": "ok"}
+{"id": "s040", "query": "19 mm ply", "item": "Plywood structural floor 19mm", "expect": "ok"}
+{"id": "s041", "query": "19mm structural plywood", "item": "Plywood structural floor 19mm", "expect": "ok"}
+{"id": "s042", "query": "86 x 19 hardwood decking", "item": "Hardwood decking 86x19", "expect": "ok"}
+{"id": "s043", "query": "R3.5 batts", "item": "Roof insulation R3.5 batts", "expect": "ok"}
+{"id": "s044", "query": "R 3.5 ceiling insulation", "item": "Roof insulation R3.5 batts", "expect": "ok"}
+{"id": "s045", "query": "20 mm copper pipe", "item": "Copper pipe 20mm", "expect": "ok"}
+{"id": "s046", "query": "20mm copper", "item": "Copper pipe 20mm", "expect": "ok"}
+{"id": "s047", "query": "100 mm PVC stormwater", "item": "PVC stormwater pipe 100mm", "expect": "ok"}
+{"id": "s048", "query": "250 L electric hot water", "item": "Hot water system 250L electric", "expect": "ok"}
+{"id": "s049", "query": "250 litre hot water system", "item": "Hot water system 250L electric", "expect": "ok"}
+{"id": "s050", "query": "2.5 mm TPS cable", "item": "Cable TPS 2.5mm", "expect": "ok"}
+{"id": "s051", "query": "10 mm gyprock", "item": "Plasterboard 10mm fix and set", "expect": "ok"}
+{"id": "s052", "query": "10mm plasterboard fixed and set", "item": "Plasterboard 10mm fix and set", "expect": "ok"}
+{"id": "s053", "query": "20 mil road base", "item": "Compacted road base 20mm", "expect": "ok"}
+{"id": "s054", "query": "200 micron vapour barrier", "item": "Vapour barrier membrane 200um", "expect": "ok"}
+{"id": "s055", "query": "200um membrane", "item": "Vapour barrier membrane 200um", "expect": "ok"}
+{"id": "s056", "query": "6 cube skip", "item": "Skip bin 6m3", "expect": "ok"}
+{"id": "s057", "query": "12-way switchboard", "item": "Switchboard 12 circuit", "expect": "ok"}
+{"id": "s058", "query": "190 mm blockwork", "item": "Concrete block 190 laid", "expect": "ok"}
+{"id": "s059", "query": "floor tiles 600 x 600 supplied and laid", "item": "Floor tiles supply and lay", "expect": "ok"}
+{"id": "s060", "query": "roof trusses over the 36 m2 footprint", "item": "Roof truss supply and install", "expect": "ok"}
+{"id": "s061", "query": "scaffold for 3 weeks", "item": "Scaffold hire per week", "expect": "ok"}
+{"id": "s062", "query": "8 off LED downlights", "item": "Downlight LED supply and install", "expect": "ok"}
+{"id": "s063", "query": "wall framing 6 x 3 m, 140x45 pine", "item": "Treated pine framing 140x45 MGP10", "expect": "ok"}
+{"id": "s064", "query": "20 off 90x45 studs at 450 centres", "item": "Treated pine framing 90x45 MGP10", "expect": "ok"}
+{"id": "s065", "query": "8 tonne digger with driver", "item": "Excavator hire 8t with operator", "expect": "ok"}
