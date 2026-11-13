@@ -1,0 +1,40 @@
+{"id": "h001", "split": "holdout2", "gold": "Site toilet hire per week", "query": "hire a dunny for the site", "kind": "jargon"}
+{"id": "h002", "split": "holdout2", "gold": "Skip bin 6m3", "query": "rubbish skip for the demo waste, 6 cube", "kind": "jargon"}
+{"id": "h003", "split": "holdout2", "gold": "Concrete 25MPa ready-mix", "query": "25 meg ready mix for the footings", "kind": "jargon"}
+{"id": "h004", "split": "holdout2", "gold": "Concrete 32MPa ready-mix", "query": "32 meg concrete for the beam", "kind": "jargon"}
+{"id": "h005", "split": "holdout2", "gold": "Reinforcing mesh SL82 6m x 2.4m", "query": "reo mesh SL82 for the garage floor", "kind": "jargon"}
+{"id": "h006", "split": "holdout2", "gold": "Reinforcing bar N12 12m", "query": "reo bar N12 for the dowels", "kind": "jargon"}
+{"id": "h007", "split": "holdout2", "gold": "Electrician labour", "query": "sparkie hours on site", "kind": "jargon"}
+{"id": "h008", "split": "holdout2", "gold": "Bricklayer labour", "query": "brickie hourly for the garage walls", "kind": "jargon"}
+{"id": "h009", "split": "holdout2", "gold": "Carpenter labour", "query": "chippie to hang doors and trim, hourly", "kind": "jargon"}
+{"id": "h010", "split": "holdout2", "gold": "Colorbond roof sheeting supply and fix", "query": "tin roof laid over the extension", "kind": "jargon"}
+{"id": "h011", "split": "holdout2", "gold": "Gutter and downpipe set", "query": "spouting and downpipes to the new roof", "kind": "jargon"}
+{"id": "h012", "split": "holdout2", "gold": "Site cut and level", "query": "cut and fill the building pad", "kind": "jargon"}
+{"id": "h013", "split": "holdout2", "gold": "Compacted road base 20mm", "query": "20 mil road base to the driveway", "kind": "jargon"}
+{"id": "h014", "split": "holdout2", "gold": "Soil removal to tip", "query": "dump the spoil at the tip", "kind": "jargon"}
+{"id": "h015", "split": "holdout2", "gold": "Scaffold hire per week", "query": "scaffolders for three weeks", "kind": "jargon"}
+{"id": "h016", "split": "holdout2", "gold": "Power point double supply and install", "query": "GPO double outlets to the kitchen", "kind": "jargon"}
+{"id": "h017", "split": "holdout2", "gold": "Formwork hire per lineal metre", "query": "form up the slab edges", "kind": "jargon"}
+{"id": "h018", "split": "holdout2", "gold": "Concrete pump hire per half day", "query": "pump truck for the pour", "kind": "jargon"}
+{"id": "h019", "split": "holdout2", "gold": "Concrete slab finishing labour", "query": "concreter to trowel the slab", "kind": "jargon"}
+{"id": "h020", "split": "holdout2", "gold": "Wall frame prefabricated", "query": "pre-nailed wall frames delivered", "kind": "jargon"}
+{"id": "h021", "split": "holdout2", "gold": "Crane truck hire", "query": "mobile crane truck for lifting the beams", "kind": "paraphrase"}
+{"id": "h022", "split": "holdout2", "gold": "Hot water system 250L electric", "query": "hot water unit, 250 litre electric", "kind": "paraphrase"}
+{"id": "h023", "split": "holdout2", "gold": "Sewer connection and inspection", "query": "connect to the sewer main, plumber to have it inspected", "kind": "paraphrase"}
+{"id": "h024", "split": "holdout2", "gold": "Survey and set out", "query": "pegs and set out by the surveyor", "kind": "paraphrase"}
+{"id": "h025", "split": "holdout2", "gold": "Insurance and compliance allowance", "query": "contractors all risk insurance allowance", "kind": "paraphrase"}
+{"id": "h026", "split": "holdout2", "gold": "Painter labour", "query": "painters hourly rate", "kind": "paraphrase"}
+{"id": "h027", "split": "holdout2", "gold": "Floor tiles supply and lay", "query": "tiler to supply and lay floor tiles", "kind": "tender_style"}
+{"id": "h028", "split": "holdout2", "gold": "Waterproofing membrane wet area", "query": "bathroom waterproofing membrane", "kind": "tender_style"}
+{"id": "h029", "split": "holdout2", "gold": "Downlight LED supply and install", "query": "8 off LED down lights supplied and installed", "kind": "tender_style"}
+{"id": "h030", "split": "holdout2", "gold": "PVC stormwater pipe 100mm", "query": "100 mm PVC storm water pipe", "kind": "spec"}
+{"id": "h031", "split": "holdout2", "gold": "Structural steel beam 200UB25", "query": "200UB25 universal beam to the opening", "kind": "spec"}
+{"id": "h032", "split": "holdout2", "gold": "Treated pine framing 90x45 MGP10", "query": "90 x 45 MGP10 treated pine framing", "kind": "spec"}
+{"id": "h033", "split": "holdout2", "gold": "Smoke alarm interconnected", "query": "interconnected smoke alarms to each bedroom", "kind": "tender_style"}
+{"id": "h034", "split": "holdout2", "gold": "Site supervisor", "query": "foreman for five days", "kind": "paraphrase"}
+{"id": "h035", "split": "holdout2", "gold": null, "query": "N16 reinforcing bar 12 m lengths", "kind": "near_miss"}
+{"id": "h036", "split": "holdout2", "gold": null, "query": "40 MPa concrete for the transfer slab", "kind": "near_miss"}
+{"id": "h037", "split": "holdout2", "gold": null, "query": "400 L electric hot water system", "kind": "near_miss"}
+{"id": "h038", "split": "holdout2", "gold": null, "query": "310UB40 steel beam", "kind": "near_miss"}
+{"id": "h039", "split": "holdout2", "gold": null, "query": "heated bathroom floor system", "kind": "negative"}
+{"id": "h040", "split": "holdout2", "gold": null, "query": "rooftop garden installation", "kind": "negative"}
