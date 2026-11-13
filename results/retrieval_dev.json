@@ -1,0 +1,380 @@
+{
+  "vec_current": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.963,
+      "hit@3": 0.963,
+      "hit@4": 0.963,
+      "hit@5": 1.0,
+      "mrr": 0.97
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 0.933,
+        "hit@4": 0.933,
+        "hit@5": 1.0,
+        "mrr": 0.947
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 22.41,
+    "top1_misses": [
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.837,
+    "top_score_negative_mean": 0.687
+  },
+  "vec_query_prefix": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.963,
+      "hit@3": 0.963,
+      "hit@4": 0.963,
+      "hit@5": 1.0,
+      "mrr": 0.97
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 0.933,
+        "hit@4": 0.933,
+        "hit@5": 1.0,
+        "mrr": 0.947
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 34.64,
+    "top1_misses": [
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.837,
+    "top_score_negative_mean": 0.687
+  },
+  "vec_name_only": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.889,
+      "hit@3": 0.889,
+      "hit@4": 0.889,
+      "hit@5": 0.889,
+      "mrr": 0.902
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 0.75,
+        "hit@3": 0.75,
+        "hit@4": 0.75,
+        "hit@5": 0.75,
+        "mrr": 0.775
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.867,
+        "hit@3": 0.867,
+        "hit@4": 0.867,
+        "hit@5": 0.867,
+        "mrr": 0.884
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 46.53,
+    "top1_misses": [
+      {
+        "id": "q032",
+        "query": "reflective foil under the roof sheets",
+        "gold": "Sarking foil",
+        "got": "Colorbond roof sheeting supply and fix",
+        "gold_rank": 10
+      },
+      {
+        "id": "q039",
+        "query": "cement render to external walls",
+        "gold": "Render and finish",
+        "got": "Retaining wall block system",
+        "gold_rank": 9
+      },
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Wall frame prefabricated",
+        "gold_rank": 7
+      }
+    ],
+    "top_score_positive_mean": 0.855,
+    "top_score_negative_mean": 0.706
+  },
+  "bm25": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.63,
+      "hit@3": 0.889,
+      "hit@4": 0.889,
+      "hit@5": 0.889,
+      "mrr": 0.758
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 0.5,
+        "hit@3": 0.5,
+        "hit@4": 0.5,
+        "hit@5": 0.5,
+        "mrr": 0.541
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.667,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.822
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 0.667,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.806
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 0.5,
+        "hit@3": 0.5,
+        "hit@4": 0.5,
+        "hit@5": 0.5,
+        "mrr": 0.562
+      }
+    },
+    "median_ms": 0.28,
+    "top1_misses": [
+      {
+        "id": "q001",
+        "query": "supply and place 25 MPa concrete to the slab",
+        "gold": "Concrete 25MPa ready-mix",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 8
+      },
+      {
+        "id": "q002",
+        "query": "32 MPa ready mixed concrete for the suspended beams",
+        "gold": "Concrete 32MPa ready-mix",
+        "got": "Concrete 25MPa ready-mix",
+        "gold_rank": 2
+      },
+      {
+        "id": "q011",
+        "query": "20 mm crushed rock sub-base to driveway",
+        "gold": "Compacted road base 20mm",
+        "got": "Soil removal to tip",
+        "gold_rank": 2
+      },
+      {
+        "id": "q014",
+        "query": "silt fence around the site boundary",
+        "gold": "Sediment fencing",
+        "got": "Site supervisor",
+        "gold_rank": 16
+      },
+      {
+        "id": "q022",
+        "query": "140 x 45 treated framing to external walls",
+        "gold": "Treated pine framing 140x45 MGP10",
+        "got": "Treated pine framing 90x45 MGP10",
+        "gold_rank": 2
+      },
+      {
+        "id": "q024",
+        "query": "trusses delivered and craned on",
+        "gold": "Roof truss supply and install",
+        "got": "Render and finish",
+        "gold_rank": 10
+      },
+      {
+        "id": "q025",
+        "query": "19 mm structural ply flooring",
+        "gold": "Plywood structural floor 19mm",
+        "got": "Structural steel beam 200UB25",
+        "gold_rank": 3
+      },
+      {
+        "id": "q029",
+        "query": "metal roofing sheets to the new roof, fixed",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "got": "Roof plumber labour",
+        "gold_rank": 3
+      },
+      {
+        "id": "q058",
+        "query": "standard kitchen cabinets per lineal metre",
+        "gold": "Kitchen cabinetry standard",
+        "got": "Formwork hire per lineal metre",
+        "gold_rank": 2
+      },
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Internal paint two coats",
+        "gold_rank": 2
+      }
+    ],
+    "top_score_positive_mean": 6.761,
+    "top_score_negative_mean": 2.609
+  },
+  "hybrid": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.852,
+      "hit@3": 1.0,
+      "hit@4": 1.0,
+      "hit@5": 1.0,
+      "mrr": 0.92
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 0.5,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.708
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.967
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 0.5,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.75
+      }
+    },
+    "median_ms": 28.42,
+    "top1_misses": [
+      {
+        "id": "q001",
+        "query": "supply and place 25 MPa concrete to the slab",
+        "gold": "Concrete 25MPa ready-mix",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 2
+      },
+      {
+        "id": "q014",
+        "query": "silt fence around the site boundary",
+        "gold": "Sediment fencing",
+        "got": "Site cut and level",
+        "gold_rank": 3
+      },
+      {
+        "id": "q024",
+        "query": "trusses delivered and craned on",
+        "gold": "Roof truss supply and install",
+        "got": "Gutter and downpipe set",
+        "gold_rank": 2
+      },
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Wall frame prefabricated",
+        "gold_rank": 2
+      }
+    ],
+    "top_score_positive_mean": 6.761,
+    "top_score_negative_mean": 2.609
+  }
+}
