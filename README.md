@@ -79,9 +79,31 @@ All 74 queries, production prompt, production retrieval. A pick outside the offe
 - Sonnet costs about 40 times what DeepSeek does for no measurable gain on this task.
 - Haiku and Sonnet each once picked an item that had been offered for a *different* line. The workflow's check rejects that, which is why the scorer does too. An earlier version of my scorer counted that as a lucky hit; I found it by reading the errors and fixed it.
 
+### 3. Slang: a pre-registered attempt to fix the weakness
+
+The weakness above is trade slang. The idea: have a cheap model rewrite each tender line into plain standard terms before searching (no glossary, no per-item hints). Before running anything I wrote 40 fresh queries (20 slang, 14 plain regression checks, 6 negatives including 4 near-misses) and the success criteria, and committed them (`evals/holdout2.jsonl`, `evals/PREREGISTRATION.md`). Run once:
+
+| retrieval | hit@1 | hit@4, all 34 real queries | hit@4, 20 slang queries |
+|---|---|---|---|
+| vector search (shipped) | 76% | 85% (29) | 80% (16) |
+| rewrite, then vector search | 85% | 91% (31) | 90% (18) |
+| rewrite fused with original | 79% | 91% (31) | 90% (18) |
+
+Plain queries were unchanged, so the first two criteria hold, but the gain is **two queries**: real in direction, small in size. Rewrites also left several slang phrases untouched ("form up the slab edges", "pump truck for the pour", "foreman for five days"), so those still miss.
+
+The third criterion was no new false matches on the near-miss negatives. **It failed**, and the reason matters more than the slang:
+
+| model, search | false matches on the 6 not-in-catalogue items |
+|---|---|
+| deepseek-v4-flash, either search | 0 |
+| claude-haiku-5.5, shipped search | 2 (hot water 400 L quoted as 250 L, steel beam 310UB40 quoted as 200UB25) |
+| claude-haiku-5.5, rewrite first | 4 (the two above, plus N16 bar quoted as N12 and 40 MPa concrete quoted as 32 MPa) |
+
+So **the rewrite is not wired into the workflow**, and its code and cached results stay in the repo as an evaluated option. More important: a stronger model will quietly quote the nearest wrong size or grade when the exact spec is missing, and the current checks (unit match, offered-candidates-only) don't catch that. With n=4 per model I would not claim DeepSeek is better at it, only that this failure exists and is measurable.
+
 ### What these numbers do not show
 
-- **Small and invented.** 66 catalogue items, 74 queries, one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
+- **Small and invented.** 66 catalogue items, 74 queries plus 40 in the fresh set, one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
 - **The labels were written by the AI assistant that helped build this, from the catalogue, and not independently reviewed.** Treat them as a first version.
 - **The "not in the catalogue" cases are easy** (swimming pools, lifts). There are no near-miss cases such as asking for N16 bar when only N12 exists, so the 0% false-match rate is weaker evidence than it looks.
 - No measure of the draft's dollar accuracy against real quotes, because there are none.
@@ -90,4 +112,4 @@ All 74 queries, production prompt, production retrieval. A pick outside the offe
 
 Working: the full workflow, the evaluation harness, 19 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
-Next: query rewriting for trade slang (the measured weakness), a Postgres checkpointer for the live run (the demo uses an in-memory one), an HTTP API and approval screen, prompt-injection and guardrail tests, observability.
+Next: a code-side spec check, so a quote can never silently use a different size or grade than the tender asked for (then re-test the rewrite against it, on a fresh near-miss set); a Postgres checkpointer for the live run (the demo uses an in-memory one), an HTTP API and approval screen, prompt-injection and guardrail tests, observability.

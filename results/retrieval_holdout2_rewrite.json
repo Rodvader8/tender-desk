@@ -1,0 +1,289 @@
+{
+  "vec_current": {
+    "overall": {
+      "n": 34,
+      "hit@1": 0.765,
+      "hit@3": 0.853,
+      "hit@4": 0.853,
+      "hit@5": 0.912,
+      "mrr": 0.826
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 20,
+        "hit@1": 0.65,
+        "hit@3": 0.8,
+        "hit@4": 0.8,
+        "hit@5": 0.9,
+        "mrr": 0.751
+      },
+      "paraphrase": {
+        "n": 7,
+        "hit@1": 0.857,
+        "hit@3": 0.857,
+        "hit@4": 0.857,
+        "hit@5": 0.857,
+        "mrr": 0.869
+      },
+      "spec": {
+        "n": 3,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 20.27,
+    "top1_misses": [
+      {
+        "id": "h001",
+        "query": "hire a dunny for the site",
+        "gold": "Site toilet hire per week",
+        "got": "Site supervisor",
+        "gold_rank": 3
+      },
+      {
+        "id": "h007",
+        "query": "sparkie hours on site",
+        "gold": "Electrician labour",
+        "got": "Site toilet hire per week",
+        "gold_rank": 9
+      },
+      {
+        "id": "h009",
+        "query": "chippie to hang doors and trim, hourly",
+        "gold": "Carpenter labour",
+        "got": "Bricklayer labour",
+        "gold_rank": 5
+      },
+      {
+        "id": "h010",
+        "query": "tin roof laid over the extension",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "got": "Ridge capping",
+        "gold_rank": 6
+      },
+      {
+        "id": "h012",
+        "query": "cut and fill the building pad",
+        "gold": "Site cut and level",
+        "got": "Floor tiles supply and lay",
+        "gold_rank": 2
+      },
+      {
+        "id": "h017",
+        "query": "form up the slab edges",
+        "gold": "Formwork hire per lineal metre",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 5
+      },
+      {
+        "id": "h018",
+        "query": "pump truck for the pour",
+        "gold": "Concrete pump hire per half day",
+        "got": "Tipper truck hire",
+        "gold_rank": 2
+      },
+      {
+        "id": "h034",
+        "query": "foreman for five days",
+        "gold": "Site supervisor",
+        "got": "Painter labour",
+        "gold_rank": 12
+      }
+    ],
+    "top_score_positive_mean": 0.797,
+    "top_score_negative_mean": 0.816
+  },
+  "rewrite_only": {
+    "overall": {
+      "n": 34,
+      "hit@1": 0.853,
+      "hit@3": 0.912,
+      "hit@4": 0.912,
+      "hit@5": 0.941,
+      "mrr": 0.895
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 20,
+        "hit@1": 0.8,
+        "hit@3": 0.9,
+        "hit@4": 0.9,
+        "hit@5": 0.95,
+        "mrr": 0.867
+      },
+      "paraphrase": {
+        "n": 7,
+        "hit@1": 0.857,
+        "hit@3": 0.857,
+        "hit@4": 0.857,
+        "hit@5": 0.857,
+        "mrr": 0.869
+      },
+      "spec": {
+        "n": 3,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 19.1,
+    "top1_misses": [
+      {
+        "id": "h010",
+        "query": "tin roof laid over the extension",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "got": "Roof insulation R3.5 batts",
+        "gold_rank": 7
+      },
+      {
+        "id": "h012",
+        "query": "cut and fill the building pad",
+        "gold": "Site cut and level",
+        "got": "Floor tiles supply and lay",
+        "gold_rank": 2
+      },
+      {
+        "id": "h017",
+        "query": "form up the slab edges",
+        "gold": "Formwork hire per lineal metre",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 5
+      },
+      {
+        "id": "h018",
+        "query": "pump truck for the pour",
+        "gold": "Concrete pump hire per half day",
+        "got": "Tipper truck hire",
+        "gold_rank": 2
+      },
+      {
+        "id": "h034",
+        "query": "foreman for five days",
+        "gold": "Site supervisor",
+        "got": "Painter labour",
+        "gold_rank": 12
+      }
+    ],
+    "top_score_positive_mean": 0.812,
+    "top_score_negative_mean": 0.816
+  },
+  "rewrite_fused": {
+    "overall": {
+      "n": 34,
+      "hit@1": 0.794,
+      "hit@3": 0.882,
+      "hit@4": 0.912,
+      "hit@5": 0.941,
+      "mrr": 0.859
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 20,
+        "hit@1": 0.7,
+        "hit@3": 0.85,
+        "hit@4": 0.9,
+        "hit@5": 0.95,
+        "mrr": 0.806
+      },
+      "paraphrase": {
+        "n": 7,
+        "hit@1": 0.857,
+        "hit@3": 0.857,
+        "hit@4": 0.857,
+        "hit@5": 0.857,
+        "mrr": 0.869
+      },
+      "spec": {
+        "n": 3,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 54.86,
+    "top1_misses": [
+      {
+        "id": "h007",
+        "query": "sparkie hours on site",
+        "gold": "Electrician labour",
+        "got": "Site toilet hire per week",
+        "gold_rank": 4
+      },
+      {
+        "id": "h009",
+        "query": "chippie to hang doors and trim, hourly",
+        "gold": "Carpenter labour",
+        "got": "Bricklayer labour",
+        "gold_rank": 2
+      },
+      {
+        "id": "h010",
+        "query": "tin roof laid over the extension",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "got": "Ridge capping",
+        "gold_rank": 6
+      },
+      {
+        "id": "h012",
+        "query": "cut and fill the building pad",
+        "gold": "Site cut and level",
+        "got": "Floor tiles supply and lay",
+        "gold_rank": 2
+      },
+      {
+        "id": "h017",
+        "query": "form up the slab edges",
+        "gold": "Formwork hire per lineal metre",
+        "got": "Concrete slab finishing labour",
+        "gold_rank": 5
+      },
+      {
+        "id": "h018",
+        "query": "pump truck for the pour",
+        "gold": "Concrete pump hire per half day",
+        "got": "Tipper truck hire",
+        "gold_rank": 2
+      },
+      {
+        "id": "h034",
+        "query": "foreman for five days",
+        "gold": "Site supervisor",
+        "got": "Painter labour",
+        "gold_rank": 12
+      }
+    ],
+    "top_score_positive_mean": 0.812,
+    "top_score_negative_mean": 0.816
+  }
+}
