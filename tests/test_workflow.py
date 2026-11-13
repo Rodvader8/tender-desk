@@ -9,20 +9,6 @@ from tender_desk.models import Choice, Choices, Scope, ScopeItem
 pytest.importorskip("psycopg")
 
 
-@pytest.fixture
-def conn():
-    try:
-        c = connect()
-    except Exception:
-        pytest.skip("local database not running (docker compose up -d)")
-    yield c
-    ids = [r[0] for r in c.execute("SELECT id FROM tenders WHERE title LIKE 'TEST %'").fetchall()]
-    for t in ids:
-        c.execute("DELETE FROM audit_log WHERE tender_id=%s", (t,))
-        c.execute("DELETE FROM quotes WHERE tender_id=%s", (t,))
-        c.execute("DELETE FROM tenders WHERE id=%s", (t,))
-
-
 class FakeLLM:
     """Returns scripted answers. Records every prompt so tests can inspect what the model was shown."""
     def __init__(self, scope, choices_list):
@@ -122,6 +108,7 @@ def test_unit_spellings_match_but_real_mismatches_still_flag(conn):
     assert normalise_unit("m²") == normalise_unit("m2") and normalise_unit("lin m") == "m"
     assert normalise_unit("lump sum") == normalise_unit("each") and normalise_unit("sheets") == "sheet"
     assert normalise_unit("m2") != normalise_unit("m")
+    assert normalise_unit("m² footprint") == "m2" and normalise_unit("lump sum, allowance") == "each" and normalise_unit("lineal metres of framing") == "m"
     scope = Scope(job_summary="x", items=[ScopeItem(description="25MPa concrete", qty=5, unit="m³")])
     ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="exact")])
     _, _, _, res = run(conn, FakeLLM(scope, [ch]))

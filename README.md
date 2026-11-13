@@ -33,12 +33,32 @@ Design rules, each enforced in code and covered by a test:
 docker compose up -d                       # Postgres 17 + pgvector, seeded from sql/
 uv sync
 uv run python scripts/seed.py              # invented price list, 30 past jobs
-uv run pytest                              # 24 tests, no API cost
+uv run pytest                              # 31 tests, no API cost
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
 ```
 
 The model key is read from `OPENROUTER_API_KEY` or `~/.config/openrouter/key`. Model is configurable: `TENDER_DESK_MODEL` (default `deepseek/deepseek-v4-flash`).
+
+## API and approval screen
+
+```bash
+uv run uvicorn tender_desk.api:build_default_app --factory --host 127.0.0.1 --port 8765
+```
+
+Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced quote, and a reviewer approves or rejects it on the screen. Flagged lines are highlighted and lines with no price are excluded from the total. Rejecting with notes asks for one revised draft; rejecting without notes closes the tender. The audit trail for every tender is on the page.
+
+| endpoint | does |
+|---|---|
+| `POST /tenders` | create a tender and run it until it needs a person |
+| `GET /tenders`, `GET /tenders/{id}` | list, or one tender with its pending draft or final quote and audit trail |
+| `POST /tenders/{id}/decision` | approve or reject (409 if it is not awaiting approval) |
+
+- **Paused quotes survive a restart.** Workflow state is checkpointed in Postgres. A test starts a tender on one server, discards it, and approves it from a second server with a new connection pool and nothing in memory.
+- **Spend limits apply per request.** A tender that hits the cap returns 503 and is marked `stopped_by_spend_limit`. Unexpected errors return a generic 500 and never expose exception text or keys.
+- **The screen treats everything as untrusted text.** Tender text and model output are written with `textContent`, never HTML. A strict Content-Security-Policy is set, there are no inline styles or scripts, and a test fails if `innerHTML`, `eval` or `document.write` appears in the page code.
+- **Local use only.** There is no login. It binds to 127.0.0.1 and must not be exposed as it stands. The reviewer name is typed in, not authenticated.
+- Checked in a browser at desktop and phone width (the table scrolls inside its own box, the page does not).
 
 ## Evaluation
 
@@ -133,6 +153,8 @@ On the original 74 queries the check blocked nothing, so no correct line was wro
 
 ## Status
 
-Working: the full workflow, the evaluation harness, 24 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the API and approval screen, the evaluation harness, 31 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
-Next: a Postgres checkpointer for the live run (the demo uses an in-memory one), an HTTP API and approval screen, prompt-injection and guardrail tests, observability.
+Next: prompt-injection and guardrail tests (the prompts already tell the model to ignore instructions inside tender text, but that is untested), observability (per-step cost and latency), and a React front end.
+
+**Observed while building the screen:** the model sometimes merges two tender items into one line (it merged concrete and mesh in one live run and split them in the next). The workflow flags the merged line as unpriced rather than guessing, but extraction is not deterministic and is not yet evaluated.

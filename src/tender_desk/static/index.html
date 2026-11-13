@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tender Desk</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Tender Desk</h1>
+    <p class="sub">A person approves every quote before it is saved.</p>
+  </header>
+  <div class="layout">
+    <nav class="side" aria-label="Tenders">
+      <button id="new-btn" class="btn primary wide" type="button">New tender</button>
+      <ul id="list" class="tender-list"></ul>
+    </nav>
+    <main id="main" class="main" tabindex="-1"></main>
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
