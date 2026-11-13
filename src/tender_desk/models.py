@@ -49,3 +49,12 @@ class Draft(BaseModel):
     flags: list[str]
     needs_attention: bool
     comparables: list[dict]
+
+
+class BoundedScopeItem(ScopeItem):
+    description: str = Field(max_length=200, description="One buildable scope item")
+    qty: float = Field(gt=0, le=100000)
+
+
+class BoundedScope(Scope):
+    items: list[BoundedScopeItem] = Field(max_length=40)
