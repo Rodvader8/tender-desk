@@ -112,6 +112,7 @@ def build_graph(llm, conn, checkpointer):
         draft = Draft(job_summary=state["scope"]["job_summary"], lines=lines, subtotal=subtotal, margin_pct=margin,
                       total=round(subtotal * (1 + margin / 100), 2), flags=flags, needs_attention=bool(flags),
                       comparables=comps)
+        conn.execute("UPDATE tenders SET status='awaiting_approval' WHERE id=%s", (state["tender_id"],))
         audit(conn, state["tender_id"], "draft_built", total=draft.total, flags=len(flags))
         return {"draft": draft.model_dump()}
 
@@ -146,12 +147,23 @@ def build_graph(llm, conn, checkpointer):
     return g.compile(checkpointer=checkpointer)
 
 
-def submit(conn, graph, title: str, text: str, thread_id: str | None = None) -> tuple[int, dict, dict]:
-    """Create a tender and run it until it needs a person. Returns (tender_id, config, result)."""
+def create_tender(conn, title: str, text: str) -> int:
     tid = conn.execute("INSERT INTO tenders (title, raw_text) VALUES (%s,%s) RETURNING id", (title, text)).fetchone()[0]
     audit(conn, tid, "tender_received", title=title)
+    return tid
+
+
+def start(graph, tid: int, text: str, thread_id: str | None = None) -> tuple[dict, dict]:
+    """Run an existing tender until it needs a person. Returns (config, result)."""
     config = {"configurable": {"thread_id": thread_id or f"tender-{tid}"}}
-    return tid, config, graph.invoke({"tender_id": tid, "tender_text": text, "revisions": 0}, config)
+    return config, graph.invoke({"tender_id": tid, "tender_text": text, "revisions": 0}, config)
+
+
+def submit(conn, graph, title: str, text: str, thread_id: str | None = None) -> tuple[int, dict, dict]:
+    """Create a tender and run it until it needs a person. Returns (tender_id, config, result)."""
+    tid = create_tender(conn, title, text)
+    config, res = start(graph, tid, text, thread_id)
+    return tid, config, res
 
 
 def decide(graph, config: dict, approve: bool, by: str, notes: str = "") -> dict:
