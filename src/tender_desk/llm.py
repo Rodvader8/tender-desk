@@ -114,23 +114,34 @@ class LLM:
         self._key = key or load_key()
         self.guard = SpendGuard(ledger or Ledger(), limits or Limits(), lambda: fetch_status(self._client, self._key))
 
-    def chat(self, messages: list[dict], *, model: str | None = None, max_tokens: int = 1500,
-             schema: dict | None = None, purpose: str = "chat") -> dict:
+    def _post(self, body: dict, purpose: str) -> tuple[dict, float, int]:
+        """One guarded call. Returns (choice, cost, tokens)."""
         self.guard.check()
-        body = {"model": model or self.model, "messages": messages, "max_tokens": max_tokens,
-                "usage": {"include": True}, "temperature": 0}
-        if schema:
-            body["response_format"] = {"type": "json_schema", "json_schema": {"name": "out", "strict": True, "schema": schema}}
-        r = self._client.post(f"{BASE_URL}/chat/completions", json=body,
-                              headers={"Authorization": f"Bearer {self._key}"})
+        r = self._client.post(f"{BASE_URL}/chat/completions", json=body, headers={"Authorization": f"Bearer {self._key}"})
         r.raise_for_status()
         d = r.json()
         u = d.get("usage", {})
         tokens = int(u.get("total_tokens", 0))
         cost = float(u["cost"]) if u.get("cost") is not None else tokens * FALLBACK_USD_PER_TOKEN
         self.guard.record(body["model"], cost, tokens, purpose)
-        return {"text": d["choices"][0]["message"]["content"] or "", "cost": cost, "tokens": tokens,
-                "truncated": d["choices"][0].get("finish_reason") == "length"}
+        return d["choices"][0], cost, tokens
+
+    def chat(self, messages: list[dict], *, model: str | None = None, max_tokens: int = 1500,
+             schema: dict | None = None, purpose: str = "chat") -> dict:
+        body = {"model": model or self.model, "messages": messages, "max_tokens": max_tokens,
+                "usage": {"include": True}, "temperature": 0}
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": {"name": "out", "strict": True, "schema": schema}}
+        choice, cost, tokens = self._post(body, purpose)
+        return {"text": choice["message"]["content"] or "", "cost": cost, "tokens": tokens,
+                "truncated": choice.get("finish_reason") == "length"}
+
+    def complete_with_tools(self, messages: list[dict], tools: list[dict], *, max_tokens: int = 1500, purpose: str = "agent") -> dict:
+        """One turn of a tool-calling conversation. Returns the assistant message (content and any tool_calls)."""
+        body = {"model": self.model, "messages": messages, "tools": tools, "max_tokens": max_tokens,
+                "usage": {"include": True}, "temperature": 0}
+        choice, cost, tokens = self._post(body, purpose)
+        return {"message": choice["message"], "cost": cost, "tokens": tokens}
 
     def structured(self, messages: list[dict], model_cls: type[T], *, purpose: str = "structured",
                    max_tokens: int = 3000, **kw) -> T:

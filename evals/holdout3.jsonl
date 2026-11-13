@@ -1,0 +1,27 @@
+{"id": "m001", "split": "holdout3", "gold": "Electrician labour", "query": "spark to run the circuits, hourly", "kind": "jargon"}
+{"id": "m002", "split": "holdout3", "gold": "Plumber labour", "query": "hydraulics bloke on the tools, hourly", "kind": "jargon"}
+{"id": "m003", "split": "holdout3", "gold": "Plasterboard 10mm fix and set", "query": "sheetie to hang and stop the gyprock", "kind": "jargon"}
+{"id": "m004", "split": "holdout3", "gold": "Concrete 32MPa ready-mix", "query": "pour 32 meg to the beams", "kind": "jargon"}
+{"id": "m005", "split": "holdout3", "gold": "Compacted road base 20mm", "query": "20 mil crushed road base", "kind": "jargon"}
+{"id": "m006", "split": "holdout3", "gold": "Waterproofing membrane wet area", "query": "wet area membrane for the shower recess", "kind": "jargon"}
+{"id": "m007", "split": "holdout3", "gold": "Skip bin 6m3", "query": "hire a 6 cube bin for the demo waste", "kind": "jargon"}
+{"id": "m008", "split": "holdout3", "gold": "Vapour barrier membrane 200um", "query": "thick plastic sheeting under the slab, 200 micron", "kind": "jargon"}
+{"id": "m009", "split": "holdout3", "gold": "Colorbond roof sheeting supply and fix", "query": "tin roof, sheets and labour to fix", "kind": "jargon"}
+{"id": "m010", "split": "holdout3", "gold": "Treated pine framing 90x45 MGP10", "query": "H3 pine studs 90x45 for the stud walls", "kind": "jargon"}
+{"id": "m011", "split": "holdout3", "gold": "Power point double supply and install", "query": "GPOs, doubles, ten off", "kind": "jargon"}
+{"id": "m012", "split": "holdout3", "gold": "Survey and set out", "query": "pegs out by the licensed surveyor", "kind": "jargon"}
+{"id": "m013", "split": "holdout3", "gold": "Site toilet hire per week", "query": "site shed toilet, weekly rental", "kind": "jargon"}
+{"id": "m014", "split": "holdout3", "gold": "Hardwood decking 86x19", "query": "hardwood deck boards 86x19 merbau", "kind": "jargon"}
+{"id": "m015", "split": "holdout3", "gold": "Roof truss supply and install", "query": "pine roof trusses delivered and craned on", "kind": "jargon"}
+{"id": "m016", "split": "holdout3", "gold": "Roof insulation R3.5 batts", "query": "R3.5 insulation batts above the ceilings", "kind": "plain"}
+{"id": "m017", "split": "holdout3", "gold": "Copper pipe 20mm", "query": "copper water pipe 20 mm run", "kind": "plain"}
+{"id": "m018", "split": "holdout3", "gold": "PVC stormwater pipe 100mm", "query": "stormwater pipe PVC 100", "kind": "plain"}
+{"id": "m019", "split": "holdout3", "gold": "Smoke alarm interconnected", "query": "interconnected smoke alarms", "kind": "plain"}
+{"id": "m020", "split": "holdout3", "gold": null, "query": "N24 starter bars", "kind": "near_miss"}
+{"id": "m021", "split": "holdout3", "gold": null, "query": "SL102 reo mesh", "kind": "near_miss"}
+{"id": "m022", "split": "holdout3", "gold": null, "query": "65 MPa high strength concrete", "kind": "near_miss"}
+{"id": "m023", "split": "holdout3", "gold": null, "query": "360UB45 steel beam", "kind": "near_miss"}
+{"id": "m024", "split": "holdout3", "gold": null, "query": "315 litre hot water cylinder", "kind": "near_miss"}
+{"id": "m025", "split": "holdout3", "gold": null, "query": "R6.0 roof batts", "kind": "near_miss"}
+{"id": "m026", "split": "holdout3", "gold": null, "query": "rooftop solar panels", "kind": "negative"}
+{"id": "m027", "split": "holdout3", "gold": null, "query": "elevator installation", "kind": "negative"}
