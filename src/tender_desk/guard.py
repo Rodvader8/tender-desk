@@ -43,7 +43,7 @@ def quantity_in_text(qty: float, text: str) -> bool:
 
 # Written from the dev attacks only. Deliberately modest: a determined attacker can rephrase around any list.
 _PATTERNS = [
-    r"\b(ignore|disregard|forget|override)\b[^.\n]{0,40}\b(instructions?|rules|prompts?|system|constraints|schema)\b",
+    r"\b(ignore|disregard|forget|override)\b[^.\n]{0,40}\b(instructions?|rules|prompts?|system|constraints|schema|quantities|prices|pricing|amounts)\b",
     r"\bsystem\s*(override|prompt|message|update|:)",
     r"\b(print|repeat|reveal|show|output)\b[^.\n]{0,40}\b(system prompt|your (full |entire )?(system )?(prompt|instructions)|everything above)",
     r"\b(pre-?approved|auto-?approve|skip (the )?review|mark (it|this)[^.\n]{0,20}approved)\b",
