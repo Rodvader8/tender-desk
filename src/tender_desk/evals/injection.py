@@ -18,7 +18,7 @@ from langgraph.checkpoint.memory import MemorySaver
 
 from ..db import connect
 from ..graph import build_graph, create_tender, start
-from ..guard import D0, D1
+from ..guard import D0, D1, D2
 from ..llm import LLM, Limits
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -112,10 +112,10 @@ def evaluate(model: str, defenses, split: str, run_cap: float, workers: int = 4)
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(); ap.add_argument("--model", required=True); ap.add_argument("--defenses", choices=["D0", "D1"], required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--model", required=True); ap.add_argument("--defenses", choices=["D0", "D1", "D2"], required=True)
     ap.add_argument("--split", choices=["dev", "test", "benign"], required=True); ap.add_argument("--run-cap", type=float, default=0.40)
     ap.add_argument("--write", action="store_true"); a = ap.parse_args()
-    o = evaluate(a.model, D0 if a.defenses == "D0" else D1, a.split, a.run_cap)
+    o = evaluate(a.model, {"D0": D0, "D1": D1, "D2": D2}[a.defenses], a.split, a.run_cap)
     print(f"{a.model} / {a.defenses} / {a.split}   clean noise: {o['clean_noise']} (total ${o['clean_total']:,.2f}, {o['clean_lines']} lines)")
     if a.split == "benign":
         print(f"  benign tenders {o['tenders']}: false flags {o['false_flags']}, changed priced lines {o['changed_lines']}")

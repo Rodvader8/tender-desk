@@ -16,7 +16,7 @@ class FakeLLM:
 
     def structured(self, messages, cls, **kw):
         self.prompts.append(messages)
-        return self.scope if cls is Scope else self.choices_list.pop(0)
+        return self.scope if issubclass(cls, Scope) else self.choices_list.pop(0)
 
 
 def pid(conn, name):
@@ -123,3 +123,22 @@ def test_wrong_size_is_not_priced_even_if_the_model_picks_it(conn):
     line = res["__interrupt__"][0].value["draft"]["lines"][0]
     assert line["line_total"] == 0.0 and line["price_item_id"] is None
     assert any("spec differs" in f and "N12" in f for f in line["flags"])
+
+
+def test_count_units_are_compatible_but_time_and_area_are_not():
+    from tender_desk.units import units_compatible
+    assert units_compatible("sheets", "each") and units_compatible("each", "length") and units_compatible("m²", "m2")
+    assert not units_compatible("each", "week") and not units_compatible("m2", "m") and not units_compatible("hour", "each")
+
+
+def test_coverage_check_flags_dropped_lines_and_nothing_else(conn):
+    from tender_desk.guard import D2, numbered_items
+    text = "RFQ\n1. Site cut and level, 30 m2.\n2. Concrete 25MPa, 6 m3.\n3. Scaffold hire, 2 weeks.\n"
+    assert numbered_items(text) == 3 and numbered_items("No list here, 3 items of work") == 0
+    scope = Scope(job_summary="x", items=[ScopeItem(description="Site cut and level", qty=30, unit="m2"),
+                                          ScopeItem(description="Concrete 25MPa", qty=6, unit="m3")])
+    ch = Choices(choices=[Choice(item_index=0, price_item_id=pid(conn, "Site cut and level"), confidence="high", reason="x"),
+                          Choice(item_index=1, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="x")])
+    g = build_graph(FakeLLM(scope, [ch]), conn, MemorySaver(), D2)
+    _, _, res = submit(conn, g, "TEST coverage", text)
+    assert any("numbers 3 items but only 2" in f for f in res["__interrupt__"][0].value["draft"]["flags"])

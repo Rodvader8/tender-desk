@@ -19,12 +19,12 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
-from .guard import D0, Defenses, injection_phrases, neutralise, quantity_in_text
+from .guard import D0, Defenses, injection_phrases, neutralise, numbered_items, quantity_in_text
 from .models import BoundedScope, Choices, Draft, QuoteLine, Scope
 from .pricing import build_offer, choose_prices
 from .search import comparable_jobs, price_candidates
 from .specs import spec_conflicts
-from .units import normalise_unit
+from .units import units_compatible
 
 MIN_MARGIN = 12.0   # policy floor, percent
 MAX_REVISIONS = 2
@@ -98,7 +98,7 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses = D0):
                     lf.append(f"spec differs, not priced: {'; '.join(clash)} (closest item: {picked['name']})")
                     picked = None
             if picked is not None:
-                if normalise_unit(picked["unit"]) != normalise_unit(it["unit"]):
+                if not units_compatible(picked["unit"], it["unit"]):
                     lf.append(f"unit mismatch: tender says {it['unit']}, price list says {picked['unit']}")
                 if ch["confidence"] == "low":
                     lf.append("low confidence")
@@ -111,6 +111,10 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses = D0):
                                    unit_price=picked["unit_price"] if picked else None, line_total=total,
                                    confidence=ch["confidence"] if ch else "low", flags=lf))
             flags += [f"line {i + 1}: {f}" for f in lf]
+        if defenses.coverage:
+            listed = numbered_items(state["tender_text"])
+            if listed > len(items):
+                flags.append(f"the tender numbers {listed} items but only {len(items)} were extracted, check for missing lines")
         if defenses.detector:
             found = injection_phrases(state["tender_text"])
             if found:
