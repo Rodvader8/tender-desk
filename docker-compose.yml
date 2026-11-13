@@ -1,0 +1,19 @@
+# Local development database only. The credentials below are throwaway test values.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: tender
+      POSTGRES_PASSWORD: tender
+      POSTGRES_DB: tender
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - tender_db:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tender -d tender"]
+      interval: 3s
+      retries: 20
+volumes:
+  tender_db:
