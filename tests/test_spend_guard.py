@@ -82,3 +82,26 @@ def test_balance_recheck_happens_every_n_calls(tmp_path):
     for _ in range(4):
         llm.chat([{"role": "user", "content": "x"}])
     assert sum(p.endswith("/credits") for p in calls) == 2  # before call 1 and before call 4
+
+
+def test_truncated_structured_answer_is_retried_with_more_room(tmp_path):
+    from pydantic import BaseModel
+
+    class Out(BaseModel):
+        n: int
+
+    sent = []
+
+    def handler(req):
+        if req.url.path.endswith(("/key", "/credits")):
+            return httpx.Response(200, json={"data": {"limit_remaining": 50, "total_credits": 110, "total_usage": 10}})
+        body = json.loads(req.content)
+        sent.append(body["max_tokens"])
+        if len(sent) == 1:
+            return httpx.Response(200, json={"choices": [{"message": {"content": '{"n":'}, "finish_reason": "length"}], "usage": {"total_tokens": 5, "cost": 0.001}})
+        return httpx.Response(200, json={"choices": [{"message": {"content": '{"n": 7}'}, "finish_reason": "stop"}], "usage": {"total_tokens": 9, "cost": 0.001}})
+
+    llm = LLM(model="m", limits=Limits(), client=httpx.Client(transport=httpx.MockTransport(handler)),
+              ledger=Ledger(tmp_path / "l.jsonl"), key=SECRET)
+    assert llm.structured([{"role": "user", "content": "x"}], Out, max_tokens=100).n == 7
+    assert sent == [100, 200]

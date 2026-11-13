@@ -129,13 +129,19 @@ class LLM:
         tokens = int(u.get("total_tokens", 0))
         cost = float(u["cost"]) if u.get("cost") is not None else tokens * FALLBACK_USD_PER_TOKEN
         self.guard.record(body["model"], cost, tokens, purpose)
-        return {"text": d["choices"][0]["message"]["content"] or "", "cost": cost, "tokens": tokens}
+        return {"text": d["choices"][0]["message"]["content"] or "", "cost": cost, "tokens": tokens,
+                "truncated": d["choices"][0].get("finish_reason") == "length"}
 
-    def structured(self, messages: list[dict], model_cls: type[T], *, purpose: str = "structured", **kw) -> T:
+    def structured(self, messages: list[dict], model_cls: type[T], *, purpose: str = "structured",
+                   max_tokens: int = 3000, **kw) -> T:
         schema = model_cls.model_json_schema()
         last_err = None
         for attempt in range(2):
-            out = self.chat(messages, schema=schema, purpose=purpose, **kw)
+            out = self.chat(messages, schema=schema, purpose=purpose, max_tokens=max_tokens, **kw)
+            if out["truncated"]:  # the answer ran out of room: retry once with double, never parse half a JSON
+                last_err = "response cut off at max_tokens"
+                max_tokens *= 2
+                continue
             try:
                 return model_cls.model_validate_json(out["text"])
             except ValidationError as e:
