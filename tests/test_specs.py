@@ -27,3 +27,10 @@ def test_spellings_and_site_dimensions():
 def test_message_names_both_sides():
     (msg,) = spec_conflicts("N16 bar", "Reinforcing bar N12 12m")
     assert "16" in msg and "12" in msg
+
+
+def test_three_digit_sl_mesh_is_read():
+    """Found by the fresh agent evaluation: 'SL102 reo mesh' was priced as SL82 because only two digits were read."""
+    assert ("sl", "102") in spec_tokens("SL102 reo mesh") and ("sl", "82") in spec_tokens("Reinforcing mesh SL82 6m x 2.4m")
+    assert spec_conflicts("SL102 reo mesh", "Reinforcing mesh SL82 6m x 2.4m")
+    assert not spec_conflicts("SL82 mesh to the slab", "Reinforcing mesh SL82 6m x 2.4m")

@@ -27,7 +27,7 @@ def spec_tokens(text: str) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []
     for m in re.finditer(r"\b(\d{2,3})\s?ub\s?(\d{2,3})\b", t): out.append(("ub", f"{m[1]}ub{m[2]}"))
     for m in re.finditer(r"\b(\d{2,3})\s?pfc\b", t): out.append(("pfc", m[1]))
-    for m in re.finditer(r"\bsl\s?(\d{2})\b", t): out.append(("sl", m[1]))
+    for m in re.finditer(r"\bsl\s?(\d{2,3})\b", t): out.append(("sl", m[1]))
     for m in re.finditer(r"\bn\s?(\d{2})\b", t): out.append(("n", m[1]))
     for m in re.finditer(r"\br\s?(\d(?:\.\d)?)\b", t): out.append(("r", _num(m[1])))
     # dimensions like 140x45 or 150x90x8; skip site dimensions followed by a length unit ("6 x 3 m")

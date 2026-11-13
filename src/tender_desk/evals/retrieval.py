@@ -15,8 +15,8 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def load(split: str) -> list[dict]:
-    if split == "holdout2":
-        return [json.loads(l) for l in (ROOT / "evals" / "holdout2.jsonl").read_text().splitlines()]
+    if split in ("holdout2", "holdout3"):
+        return [json.loads(l) for l in (ROOT / "evals" / f"{split}.jsonl").read_text().splitlines()]
     rows = [json.loads(l) for l in (ROOT / "evals" / "retrieval_queries.jsonl").read_text().splitlines()]
     return rows if split == "all" else [r for r in rows if r["split"] == split]
 
