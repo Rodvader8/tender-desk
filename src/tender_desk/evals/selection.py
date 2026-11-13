@@ -14,6 +14,7 @@ from pathlib import Path
 from ..db import connect
 from ..llm import LLM, Limits
 from ..pricing import build_offer, choose_prices
+from ..specs import spec_conflicts
 from .retrievers import Catalogue
 from .retrieval import load
 
@@ -41,8 +42,11 @@ def run(model: str, run_cap: float, split: str = "all", retrieval: str = "vec_cu
             offered = [c["id"] for c in cands[str(i)]]
             gold = name_to_id.get(r["gold"]) if r["gold"] else None
             pick = picks.get(i)
+            blocked = bool(pick in info and pick in offered and spec_conflicts(r["query"], info[pick]["name"]))
+            if blocked:
+                pick = None  # the workflow refuses to price a wrong size or grade, so it counts as no match
             recs.append(dict(id=r["id"], kind=r["kind"], query=r["query"], gold=r["gold"], offered=gold in offered if gold else None,
-                             pick=info[pick]["name"] if pick in info else None, invalid=pick is not None and pick not in offered,
+                             pick=info[pick]["name"] if pick in info else None, invalid=pick is not None and pick not in offered, spec_blocked=blocked,
                              correct=(pick == gold and not (pick is not None and pick not in offered)) if gold else pick is None))
     pos = [r for r in recs if r["gold"]]; neg = [r for r in recs if not r["gold"]]
     offered = [r for r in pos if r["offered"]]
@@ -53,6 +57,7 @@ def run(model: str, run_cap: float, split: str = "all", retrieval: str = "vec_cu
                wrong_pick=sum(1 for r in offered if r["pick"] and not r["correct"]),
                wrongly_abstained=sum(1 for r in offered if r["pick"] is None),
                invalid_ids=sum(r["invalid"] for r in recs),  # picks outside the offered candidates; production rejects them and scores them wrong here
+               spec_blocked=sum(r["spec_blocked"] for r in recs),
                invalid_but_right=sum(1 for r in pos if r["invalid"] and r["pick"] == r["gold"]),
                negatives=len(neg), false_match_rate=round(sum(1 for r in neg if r["pick"] is not None) / len(neg), 3),
                errors=[r for r in recs if not r["correct"]], records=recs)
@@ -64,13 +69,13 @@ def main() -> None:
     ap.add_argument("--split", default="all"); ap.add_argument("--retrieval", default="vec_current"); ap.add_argument("--write", action="store_true"); a = ap.parse_args()
     o = run(a.model, a.run_cap, a.split, a.retrieval)
     print(f"{o['model']} / {o['retrieval']} / {o['split']}: {o['queries']} queries, cost ${o['cost_usd']}")
-    for k in ("end_to_end_accuracy", "accuracy_when_offered", "right_item_not_offered", "wrong_pick", "wrongly_abstained", "invalid_ids", "false_match_rate"):
+    for k in ("end_to_end_accuracy", "accuracy_when_offered", "right_item_not_offered", "wrong_pick", "wrongly_abstained", "invalid_ids", "spec_blocked", "false_match_rate"):
         print(f"  {k:<24}{o[k]}")
     for e in o["errors"]:
         print(f"   ! {e['query']!r}: wanted {e['gold']!r}, picked {e['pick']!r}, offered={e['offered']}")
     if a.write:
         (ROOT / "results").mkdir(exist_ok=True)
-        (ROOT / "results" / f"selection_{a.split}_{a.retrieval}_{a.model.replace('/', '_')}.json").write_text(json.dumps(o, indent=2))
+        (ROOT / "results" / f"selection_specchecked_{a.split}_{a.retrieval}_{a.model.replace('/', '_')}.json").write_text(json.dumps(o, indent=2))
 
 
 if __name__ == "__main__":
