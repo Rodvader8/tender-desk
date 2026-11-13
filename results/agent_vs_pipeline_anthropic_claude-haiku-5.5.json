@@ -1,0 +1,573 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "pipeline": {
+    "summary": {
+      "all": "25/27",
+      "slang": "13/15",
+      "plain": "4/4",
+      "not_in_catalogue": "8/8",
+      "wrong_pick": 2,
+      "false_match": 0,
+      "no_answer_step_limit": 0
+    },
+    "cost": 0.0023,
+    "records": [
+      {
+        "id": "m001",
+        "kind": "jargon",
+        "query": "spark to run the circuits, hourly",
+        "gold": "Electrician labour",
+        "pick": "Electrician labour",
+        "correct": true
+      },
+      {
+        "id": "m002",
+        "kind": "jargon",
+        "query": "hydraulics bloke on the tools, hourly",
+        "gold": "Plumber labour",
+        "pick": "Plumber labour",
+        "correct": true
+      },
+      {
+        "id": "m003",
+        "kind": "jargon",
+        "query": "sheetie to hang and stop the gyprock",
+        "gold": "Plasterboard 10mm fix and set",
+        "pick": "Plasterboard 10mm fix and set",
+        "correct": true
+      },
+      {
+        "id": "m004",
+        "kind": "jargon",
+        "query": "pour 32 meg to the beams",
+        "gold": "Concrete 32MPa ready-mix",
+        "pick": "Concrete 32MPa ready-mix",
+        "correct": true
+      },
+      {
+        "id": "m005",
+        "kind": "jargon",
+        "query": "20 mil crushed road base",
+        "gold": "Compacted road base 20mm",
+        "pick": "Compacted road base 20mm",
+        "correct": true
+      },
+      {
+        "id": "m006",
+        "kind": "jargon",
+        "query": "wet area membrane for the shower recess",
+        "gold": "Waterproofing membrane wet area",
+        "pick": "Waterproofing membrane wet area",
+        "correct": true
+      },
+      {
+        "id": "m007",
+        "kind": "jargon",
+        "query": "hire a 6 cube bin for the demo waste",
+        "gold": "Skip bin 6m3",
+        "pick": "Skip bin 6m3",
+        "correct": true
+      },
+      {
+        "id": "m008",
+        "kind": "jargon",
+        "query": "thick plastic sheeting under the slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "pick": "Vapour barrier membrane 200um",
+        "correct": false
+      },
+      {
+        "id": "m009",
+        "kind": "jargon",
+        "query": "tin roof, sheets and labour to fix",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "pick": "Colorbond roof sheeting supply and fix",
+        "correct": true
+      },
+      {
+        "id": "m010",
+        "kind": "jargon",
+        "query": "H3 pine studs 90x45 for the stud walls",
+        "gold": "Treated pine framing 90x45 MGP10",
+        "pick": "Treated pine framing 90x45 MGP10",
+        "correct": true
+      },
+      {
+        "id": "m011",
+        "kind": "jargon",
+        "query": "GPOs, doubles, ten off",
+        "gold": "Power point double supply and install",
+        "pick": "Power point double supply and install",
+        "correct": true
+      },
+      {
+        "id": "m012",
+        "kind": "jargon",
+        "query": "pegs out by the licensed surveyor",
+        "gold": "Survey and set out",
+        "pick": "Survey and set out",
+        "correct": false
+      },
+      {
+        "id": "m013",
+        "kind": "jargon",
+        "query": "site shed toilet, weekly rental",
+        "gold": "Site toilet hire per week",
+        "pick": "Site toilet hire per week",
+        "correct": true
+      },
+      {
+        "id": "m014",
+        "kind": "jargon",
+        "query": "hardwood deck boards 86x19 merbau",
+        "gold": "Hardwood decking 86x19",
+        "pick": "Hardwood decking 86x19",
+        "correct": true
+      },
+      {
+        "id": "m015",
+        "kind": "jargon",
+        "query": "pine roof trusses delivered and craned on",
+        "gold": "Roof truss supply and install",
+        "pick": "Roof truss supply and install",
+        "correct": true
+      },
+      {
+        "id": "m016",
+        "kind": "plain",
+        "query": "R3.5 insulation batts above the ceilings",
+        "gold": "Roof insulation R3.5 batts",
+        "pick": "Roof insulation R3.5 batts",
+        "correct": true
+      },
+      {
+        "id": "m017",
+        "kind": "plain",
+        "query": "copper water pipe 20 mm run",
+        "gold": "Copper pipe 20mm",
+        "pick": "Copper pipe 20mm",
+        "correct": true
+      },
+      {
+        "id": "m018",
+        "kind": "plain",
+        "query": "stormwater pipe PVC 100",
+        "gold": "PVC stormwater pipe 100mm",
+        "pick": "PVC stormwater pipe 100mm",
+        "correct": true
+      },
+      {
+        "id": "m019",
+        "kind": "plain",
+        "query": "interconnected smoke alarms",
+        "gold": "Smoke alarm interconnected",
+        "pick": "Smoke alarm interconnected",
+        "correct": true
+      },
+      {
+        "id": "m020",
+        "kind": "near_miss",
+        "query": "N24 starter bars",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m021",
+        "kind": "near_miss",
+        "query": "SL102 reo mesh",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m022",
+        "kind": "near_miss",
+        "query": "65 MPa high strength concrete",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m023",
+        "kind": "near_miss",
+        "query": "360UB45 steel beam",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m024",
+        "kind": "near_miss",
+        "query": "315 litre hot water cylinder",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m025",
+        "kind": "near_miss",
+        "query": "R6.0 roof batts",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m026",
+        "kind": "negative",
+        "query": "rooftop solar panels",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      },
+      {
+        "id": "m027",
+        "kind": "negative",
+        "query": "elevator installation",
+        "gold": null,
+        "pick": null,
+        "correct": true
+      }
+    ]
+  },
+  "agent": {
+    "summary": {
+      "all": "27/27",
+      "slang": "15/15",
+      "plain": "4/4",
+      "not_in_catalogue": "8/8",
+      "wrong_pick": 0,
+      "false_match": 0,
+      "no_answer_step_limit": 0
+    },
+    "cost": 0.02333,
+    "avg_tool_calls": 2.44,
+    "avg_searches": 1.48,
+    "records": [
+      {
+        "id": "m001",
+        "kind": "jargon",
+        "query": "spark to run the circuits, hourly",
+        "gold": "Electrician labour",
+        "pick": "Electrician labour",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007146,
+        "correct": true
+      },
+      {
+        "id": "m002",
+        "kind": "jargon",
+        "query": "hydraulics bloke on the tools, hourly",
+        "gold": "Plumber labour",
+        "pick": "Plumber labour",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0008305,
+        "correct": true
+      },
+      {
+        "id": "m003",
+        "kind": "jargon",
+        "query": "sheetie to hang and stop the gyprock",
+        "gold": "Plasterboard 10mm fix and set",
+        "pick": "Plasterboard 10mm fix and set",
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008788,
+        "correct": true
+      },
+      {
+        "id": "m004",
+        "kind": "jargon",
+        "query": "pour 32 meg to the beams",
+        "gold": "Concrete 32MPa ready-mix",
+        "pick": "Concrete 32MPa ready-mix",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007234,
+        "correct": true
+      },
+      {
+        "id": "m005",
+        "kind": "jargon",
+        "query": "20 mil crushed road base",
+        "gold": "Compacted road base 20mm",
+        "pick": "Compacted road base 20mm",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007661,
+        "correct": true
+      },
+      {
+        "id": "m006",
+        "kind": "jargon",
+        "query": "wet area membrane for the shower recess",
+        "gold": "Waterproofing membrane wet area",
+        "pick": "Waterproofing membrane wet area",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0006991,
+        "correct": true
+      },
+      {
+        "id": "m007",
+        "kind": "jargon",
+        "query": "hire a 6 cube bin for the demo waste",
+        "gold": "Skip bin 6m3",
+        "pick": "Skip bin 6m3",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007326,
+        "correct": true
+      },
+      {
+        "id": "m008",
+        "kind": "jargon",
+        "query": "thick plastic sheeting under the slab, 200 micron",
+        "gold": "Vapour barrier membrane 200um",
+        "pick": "Vapour barrier membrane 200um",
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0011268,
+        "correct": true
+      },
+      {
+        "id": "m009",
+        "kind": "jargon",
+        "query": "tin roof, sheets and labour to fix",
+        "gold": "Colorbond roof sheeting supply and fix",
+        "pick": "Colorbond roof sheeting supply and fix",
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008522,
+        "correct": true
+      },
+      {
+        "id": "m010",
+        "kind": "jargon",
+        "query": "H3 pine studs 90x45 for the stud walls",
+        "gold": "Treated pine framing 90x45 MGP10",
+        "pick": "Treated pine framing 90x45 MGP10",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007293,
+        "correct": true
+      },
+      {
+        "id": "m011",
+        "kind": "jargon",
+        "query": "GPOs, doubles, ten off",
+        "gold": "Power point double supply and install",
+        "pick": "Power point double supply and install",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007493,
+        "correct": true
+      },
+      {
+        "id": "m012",
+        "kind": "jargon",
+        "query": "pegs out by the licensed surveyor",
+        "gold": "Survey and set out",
+        "pick": "Survey and set out",
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008423,
+        "correct": true
+      },
+      {
+        "id": "m013",
+        "kind": "jargon",
+        "query": "site shed toilet, weekly rental",
+        "gold": "Site toilet hire per week",
+        "pick": "Site toilet hire per week",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007189,
+        "correct": true
+      },
+      {
+        "id": "m014",
+        "kind": "jargon",
+        "query": "hardwood deck boards 86x19 merbau",
+        "gold": "Hardwood decking 86x19",
+        "pick": "Hardwood decking 86x19",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007393,
+        "correct": true
+      },
+      {
+        "id": "m015",
+        "kind": "jargon",
+        "query": "pine roof trusses delivered and craned on",
+        "gold": "Roof truss supply and install",
+        "pick": "Roof truss supply and install",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0008033999999999999,
+        "correct": true
+      },
+      {
+        "id": "m016",
+        "kind": "plain",
+        "query": "R3.5 insulation batts above the ceilings",
+        "gold": "Roof insulation R3.5 batts",
+        "pick": "Roof insulation R3.5 batts",
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008756999999999999,
+        "correct": true
+      },
+      {
+        "id": "m017",
+        "kind": "plain",
+        "query": "copper water pipe 20 mm run",
+        "gold": "Copper pipe 20mm",
+        "pick": "Copper pipe 20mm",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007291,
+        "correct": true
+      },
+      {
+        "id": "m018",
+        "kind": "plain",
+        "query": "stormwater pipe PVC 100",
+        "gold": "PVC stormwater pipe 100mm",
+        "pick": "PVC stormwater pipe 100mm",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007083,
+        "correct": true
+      },
+      {
+        "id": "m019",
+        "kind": "plain",
+        "query": "interconnected smoke alarms",
+        "gold": "Smoke alarm interconnected",
+        "pick": "Smoke alarm interconnected",
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0006989000000000001,
+        "correct": true
+      },
+      {
+        "id": "m020",
+        "kind": "near_miss",
+        "query": "N24 starter bars",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008958,
+        "correct": true
+      },
+      {
+        "id": "m021",
+        "kind": "near_miss",
+        "query": "SL102 reo mesh",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 2,
+        "searches": 1,
+        "cost": 0.0007687,
+        "correct": true
+      },
+      {
+        "id": "m022",
+        "kind": "near_miss",
+        "query": "65 MPa high strength concrete",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0012396,
+        "correct": true
+      },
+      {
+        "id": "m023",
+        "kind": "near_miss",
+        "query": "360UB45 steel beam",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0011681,
+        "correct": true
+      },
+      {
+        "id": "m024",
+        "kind": "near_miss",
+        "query": "315 litre hot water cylinder",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 1,
+        "cost": 0.0011114,
+        "correct": true
+      },
+      {
+        "id": "m025",
+        "kind": "near_miss",
+        "query": "R6.0 roof batts",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 2,
+        "cost": 0.0008691,
+        "correct": true
+      },
+      {
+        "id": "m026",
+        "kind": "negative",
+        "query": "rooftop solar panels",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 3,
+        "cost": 0.0012055,
+        "correct": true
+      },
+      {
+        "id": "m027",
+        "kind": "negative",
+        "query": "elevator installation",
+        "gold": null,
+        "pick": null,
+        "note": "",
+        "steps": 3,
+        "searches": 3,
+        "cost": 0.0011542,
+        "correct": true
+      }
+    ]
+  }
+}

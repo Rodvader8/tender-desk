@@ -33,7 +33,7 @@ Design rules, each enforced in code and covered by a test:
 docker compose up -d                       # Postgres 17 + pgvector, seeded from sql/
 uv sync
 uv run python scripts/seed.py              # invented price list, 30 past jobs
-uv run pytest                              # 36 tests, no API cost
+uv run pytest                              # 55 tests, no API cost
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
 ```
@@ -59,6 +59,49 @@ Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced qu
 - **The screen treats everything as untrusted text.** Tender text and model output are written with `textContent`, never HTML. A strict Content-Security-Policy is set, there are no inline styles or scripts, and a test fails if `innerHTML`, `eval` or `document.write` appears in the page code.
 - **Local use only.** There is no login. It binds to 127.0.0.1 and must not be exposed as it stands. The reviewer name is typed in, not authenticated.
 - Checked in a browser at desktop and phone width (the table scrolls inside its own box, the page does not).
+
+## MCP server and agent client
+
+`tender-mcp` lets an AI agent look things up in the price list and past jobs over the Model Context Protocol (SDK 2.3). It is read-only by construction.
+
+```bash
+uv run tender-mcp                               # stdio (what an MCP client launches)
+uv run tender-mcp --transport streamable-http   # 127.0.0.1 only, no login
+uv run python scripts/mcp_demo.py "sparkie hours on site"   # an agent using it, live
+```
+
+| tool | does |
+|---|---|
+| `search_price_items` | find items by meaning, closest first |
+| `get_price_item` | one item by sku |
+| `find_comparable_jobs` | similar past jobs and their margins |
+| `check_spec` | deterministic check that an item has the size or grade the tender asked for (and the unit is interchangeable) |
+| `list_tenders` | recent tenders and status only |
+
+Plus two resources (`pricelist://categories`, `pricelist://item/{sku}`) and one prompt (`price_a_tender_line`) that the agent client reads from the server.
+
+**What it deliberately cannot do:** write, approve or save a quote, run SQL, or return raw tender text, quote drafts or reviewer notes. This is enforced twice: no such tool exists, and the server connects as a Postgres role (`tender_ro`, `sql/002_readonly_role.sql`) that has `SELECT` on the price list and four non-sensitive columns elsewhere, nothing more. A test confirms the role is refused writes, refused `raw_text`, `draft` and the audit log, and cannot write even after switching off its read-only default. Every tool is annotated read-only, every input is length-limited and typed, and each call writes one JSON line to stderr (tool, milliseconds, outcome; never arguments or results).
+
+**The agent client** (`mcp_agent.py`) is a real MCP client over stdio. Guards are in code: a step limit, the model client's spend caps, and its final answer is accepted only if it actually ran `check_spec` on that sku and the check passed (tests cover: answer never spec-checked, answer whose check failed, step limit, tool error fed back).
+
+### Does the agent beat the fixed pipeline?
+
+Fresh set of 27 queries written and committed before the run (`evals/holdout3.jsonl`, `evals/PREREGISTRATION_MCP_AGENT.md`): 15 new slang lines, 4 plain, 6 near-miss specs that aren't in the catalogue, 2 clearly absent. The pipeline is the production path (retrieve top 4, model picks, code spec-checks). Same models and temperature on both sides.
+
+| model | approach | correct | slang | wrong or false match | cost for the set |
+|---|---|---|---|---|---|
+| deepseek-v4-flash | fixed pipeline | 25 / 27 | 13 / 15 | 0 | $0.0015 |
+| deepseek-v4-flash | MCP agent | **27 / 27** | **15 / 15** | 0 | $0.0106 |
+| claude-haiku-5.5 | fixed pipeline | 25 / 27 | 13 / 15 | 2 wrong picks* | $0.0023 |
+| claude-haiku-5.5 | MCP agent | **27 / 27** | **15 / 15** | 0 | $0.0233 |
+
+*Picked the right item, but one that had been offered for a different line, which the workflow rejects.
+
+- The agent gets slang right by rewording its own searches ("sparkie hours" becomes "electrician hours") and costs **7 to 10 times more** per query, with about 2.5 to 3 tool calls each and more latency. On this set it is two queries better, which is a small margin.
+- The fixed pipeline's misses were a retrieval miss ("thick plastic sheeting under the slab") and a pick the workflow rightly rejected.
+- **The first run found a real bug in the spec check:** "SL102 reo mesh" was priced as SL82 by both approaches because only two-digit mesh grades were read. It is fixed with a test; the first DeepSeek result is kept as `results/agent_vs_pipeline_deepseek_deepseek-v4-flash_before_slmesh_fix.json` (agent 26/27, pipeline 24/27, both wrong on that one line). The set has therefore been run twice, before and after the fix.
+- One agent run hit the step limit and returned no match, which happened to be correct.
+- Limits: 27 queries, one run per model, queries written by the same AI assistant that built the system, invented catalogue. It supports "an agent with these tools handles slang better than a fixed pipeline here", not a general claim.
 
 ## Evaluation
 
@@ -193,7 +236,7 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 36 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the API and approval screen, the evaluation harness, 55 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
 Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. 
 
