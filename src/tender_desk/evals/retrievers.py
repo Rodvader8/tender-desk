@@ -25,6 +25,7 @@ class Catalogue:
         self.m_cat = np.vstack(embed(self.with_cat))
         self.m_name = np.vstack(embed(self.names))
         docs = [_tok(f"{n} {c}") for n, c in zip(self.names, self.cats)]
+        self.rewrites: dict[str, str] = {}
         self._docs, self._avg = docs, sum(map(len, docs)) / len(docs)
         df = Counter(t for d in docs for t in set(d))
         self._idf = {t: math.log(1 + (len(docs) - n + 0.5) / (n + 0.5)) for t, n in df.items()}
@@ -55,6 +56,17 @@ class Catalogue:
         a, _ = self.vec_query_prefix(query); c, top = self.bm25(query)
         fused: dict[int, float] = {}
         for ranking in (a, c):
+            for r, i in enumerate(ranking):
+                fused[i] = fused.get(i, 0) + 1 / (rrf_k + r + 1)
+        return [i for i, _ in sorted(fused.items(), key=lambda x: -x[1])], top
+
+    def rewrite_only(self, query: str):         # search with the model's plain-terms rewrite
+        return self.vec_current(self.rewrites.get(query, query))
+
+    def rewrite_fused(self, query: str, rrf_k: int = 60):   # fuse the original ranking with the rewrite's ranking
+        a, _ = self.vec_current(query); b, top = self.vec_current(self.rewrites.get(query, query))
+        fused: dict[int, float] = {}
+        for ranking in (a, b):
             for r, i in enumerate(ranking):
                 fused[i] = fused.get(i, 0) + 1 / (rrf_k + r + 1)
         return [i for i, _ in sorted(fused.items(), key=lambda x: -x[1])], top

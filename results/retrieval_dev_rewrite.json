@@ -1,0 +1,170 @@
+{
+  "vec_current": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.963,
+      "hit@3": 0.963,
+      "hit@4": 0.963,
+      "hit@5": 1.0,
+      "mrr": 0.97
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 0.933,
+        "hit@4": 0.933,
+        "hit@5": 1.0,
+        "mrr": 0.947
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 19.18,
+    "top1_misses": [
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.837,
+    "top_score_negative_mean": 0.687
+  },
+  "rewrite_only": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.963,
+      "hit@3": 0.963,
+      "hit@4": 0.963,
+      "hit@5": 1.0,
+      "mrr": 0.97
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 0.933,
+        "hit@4": 0.933,
+        "hit@5": 1.0,
+        "mrr": 0.947
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 11.99,
+    "top1_misses": [
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.837,
+    "top_score_negative_mean": 0.687
+  },
+  "rewrite_fused": {
+    "overall": {
+      "n": 27,
+      "hit@1": 0.963,
+      "hit@3": 0.963,
+      "hit@4": 0.963,
+      "hit@5": 1.0,
+      "mrr": 0.97
+    },
+    "by_kind": {
+      "jargon": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "paraphrase": {
+        "n": 15,
+        "hit@1": 0.933,
+        "hit@3": 0.933,
+        "hit@4": 0.933,
+        "hit@5": 1.0,
+        "mrr": 0.947
+      },
+      "spec": {
+        "n": 6,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      },
+      "tender_style": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@4": 1.0,
+        "hit@5": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "median_ms": 30.39,
+    "top1_misses": [
+      {
+        "id": "q059",
+        "query": "scaffold for two storey walls",
+        "gold": "Scaffold hire per week",
+        "got": "Reinforcing mesh SL82 6m x 2.4m",
+        "gold_rank": 5
+      }
+    ],
+    "top_score_positive_mean": 0.837,
+    "top_score_negative_mean": 0.687
+  }
+}
