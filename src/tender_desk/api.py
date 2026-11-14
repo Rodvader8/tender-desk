@@ -5,11 +5,12 @@ Everything shown on the screen is untrusted text (tender text, model output) and
 
   uv run uvicorn tender_desk.api:build_default_app --factory --port 8000
 """
+
 from __future__ import annotations
 
-import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -58,13 +59,13 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
         except BudgetExceeded as e:
             conn.execute("UPDATE tenders SET status='stopped_by_spend_limit' WHERE id=%s", (tid,))
             audit(conn, tid, "stopped", reason=str(e))
-            raise HTTPException(503, f"Stopped by spend limit: {e}")
+            raise HTTPException(503, f"Stopped by spend limit: {e}") from e
         except HTTPException:
             raise
         except Exception as e:  # never leak internals or keys to the browser
             conn.execute("UPDATE tenders SET status='failed' WHERE id=%s", (tid,))
             audit(conn, tid, "error", type=type(e).__name__)
-            raise HTTPException(500, "The workflow failed. See the audit log.")
+            raise HTTPException(500, "The workflow failed. See the audit log.") from e
 
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -87,11 +88,21 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
 
     @app.get("/tenders")
     def list_tenders():
-        rows = conn.execute("SELECT t.id, t.title, t.status, t.created_at, q.total FROM tenders t "
-                            "LEFT JOIN LATERAL (SELECT total FROM quotes WHERE tender_id=t.id ORDER BY id DESC LIMIT 1) q ON true "
-                            "ORDER BY t.id DESC LIMIT 50").fetchall()
-        return [{"id": r[0], "title": r[1], "status": r[2], "created_at": r[3].isoformat(),
-                 "total": float(r[4]) if r[4] is not None else None} for r in rows]
+        rows = conn.execute(
+            "SELECT t.id, t.title, t.status, t.created_at, q.total FROM tenders t "
+            "LEFT JOIN LATERAL (SELECT total FROM quotes WHERE tender_id=t.id ORDER BY id DESC LIMIT 1) q ON true "
+            "ORDER BY t.id DESC LIMIT 50"
+        ).fetchall()
+        return [
+            {
+                "id": r[0],
+                "title": r[1],
+                "status": r[2],
+                "created_at": r[3].isoformat(),
+                "total": float(r[4]) if r[4] is not None else None,
+            }
+            for r in rows
+        ]
 
     @app.post("/tenders", status_code=201)
     def create(body: TenderIn):
@@ -103,14 +114,26 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
     def get_tender(tid: int):
         t = tender_row(tid)
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
-        quote = conn.execute("SELECT draft, total, status, decided_by, notes, decided_at FROM quotes "
-                             "WHERE tender_id=%s ORDER BY id DESC LIMIT 1", (tid,)).fetchone()
+        quote = conn.execute(
+            "SELECT draft, total, status, decided_by, notes, decided_at FROM quotes WHERE tender_id=%s ORDER BY id DESC LIMIT 1",
+            (tid,),
+        ).fetchone()
         trail = conn.execute("SELECT at, event, detail FROM audit_log WHERE tender_id=%s ORDER BY id", (tid,)).fetchall()
-        return {**t,
-                "draft": pending_draft(graph(), cfg) if t["status"] == "awaiting_approval" else None,
-                "quote": None if not quote else {"draft": quote[0], "total": float(quote[1]), "status": quote[2],
-                                                 "decided_by": quote[3], "notes": quote[4], "decided_at": quote[5].isoformat()},
-                "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail]}
+        return {
+            **t,
+            "draft": pending_draft(graph(), cfg) if t["status"] == "awaiting_approval" else None,
+            "quote": None
+            if not quote
+            else {
+                "draft": quote[0],
+                "total": float(quote[1]),
+                "status": quote[2],
+                "decided_by": quote[3],
+                "notes": quote[4],
+                "decided_at": quote[5].isoformat(),
+            },
+            "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail],
+        }
 
     @app.post("/tenders/{tid}/decision")
     def decision(tid: int, body: DecisionIn):
@@ -129,11 +152,15 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
 
 def build_default_app() -> FastAPI:
     from langgraph.checkpoint.postgres import PostgresSaver
+    from psycopg import Connection
     from psycopg.rows import dict_row
     from psycopg_pool import ConnectionPool
 
     from .db import DSN, connect
-    pool = ConnectionPool(DSN, min_size=1, max_size=5, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True)
+
+    pool: ConnectionPool[Connection[dict[str, Any]]] = ConnectionPool(
+        DSN, min_size=1, max_size=5, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True
+    )
     saver = PostgresSaver(pool)
     saver.setup()
     return create_app(llm_factory=LLM, conn=connect(), checkpointer=saver)

@@ -8,14 +8,16 @@ SpendGuard. It refuses to call the API when any of these is true:
   - the key's own remaining limit is below the key floor.
 The API key is never logged, printed or written to the ledger.
 """
+
 from __future__ import annotations
 
 import json
 import os
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -107,8 +109,14 @@ class SpendGuard:
 
 
 class LLM:
-    def __init__(self, model: str | None = None, limits: Limits | None = None,
-                 client: httpx.Client | None = None, ledger: Ledger | None = None, key: str | None = None):
+    def __init__(
+        self,
+        model: str | None = None,
+        limits: Limits | None = None,
+        client: httpx.Client | None = None,
+        ledger: Ledger | None = None,
+        key: str | None = None,
+    ):
         self.model = model or os.environ.get("TENDER_DESK_MODEL", "deepseek/deepseek-v4-flash")
         self._client = client or httpx.Client(timeout=120)
         self._key = key or load_key()
@@ -126,28 +134,53 @@ class LLM:
         self.guard.record(body["model"], cost, tokens, purpose)
         return d["choices"][0], cost, tokens
 
-    def chat(self, messages: list[dict], *, model: str | None = None, max_tokens: int = 1500,
-             schema: dict | None = None, purpose: str = "chat") -> dict:
-        body = {"model": model or self.model, "messages": messages, "max_tokens": max_tokens,
-                "usage": {"include": True}, "temperature": 0}
+    def chat(
+        self,
+        messages: list[dict],
+        *,
+        model: str | None = None,
+        max_tokens: int = 1500,
+        schema: dict | None = None,
+        purpose: str = "chat",
+    ) -> dict:
+        body = {
+            "model": model or self.model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "usage": {"include": True},
+            "temperature": 0,
+        }
         if schema:
             body["response_format"] = {"type": "json_schema", "json_schema": {"name": "out", "strict": True, "schema": schema}}
         choice, cost, tokens = self._post(body, purpose)
-        return {"text": choice["message"]["content"] or "", "cost": cost, "tokens": tokens,
-                "truncated": choice.get("finish_reason") == "length"}
+        return {
+            "text": choice["message"]["content"] or "",
+            "cost": cost,
+            "tokens": tokens,
+            "truncated": choice.get("finish_reason") == "length",
+        }
 
-    def complete_with_tools(self, messages: list[dict], tools: list[dict], *, max_tokens: int = 1500, purpose: str = "agent") -> dict:
+    def complete_with_tools(
+        self, messages: list[dict], tools: list[dict], *, max_tokens: int = 1500, purpose: str = "agent"
+    ) -> dict:
         """One turn of a tool-calling conversation. Returns the assistant message (content and any tool_calls)."""
-        body = {"model": self.model, "messages": messages, "tools": tools, "max_tokens": max_tokens,
-                "usage": {"include": True}, "temperature": 0}
+        body = {
+            "model": self.model,
+            "messages": messages,
+            "tools": tools,
+            "max_tokens": max_tokens,
+            "usage": {"include": True},
+            "temperature": 0,
+        }
         choice, cost, tokens = self._post(body, purpose)
         return {"message": choice["message"], "cost": cost, "tokens": tokens}
 
-    def structured(self, messages: list[dict], model_cls: type[T], *, purpose: str = "structured",
-                   max_tokens: int = 3000, **kw) -> T:
+    def structured(
+        self, messages: list[dict], model_cls: type[T], *, purpose: str = "structured", max_tokens: int = 3000, **kw
+    ) -> T:
         schema = model_cls.model_json_schema()
-        last_err = None
-        for attempt in range(2):
+        last_err: object = None
+        for _ in range(2):
             out = self.chat(messages, schema=schema, purpose=purpose, max_tokens=max_tokens, **kw)
             if out["truncated"]:  # the answer ran out of room: retry once with double, never parse half a JSON
                 last_err = "response cut off at max_tokens"
@@ -157,5 +190,7 @@ class LLM:
                 return model_cls.model_validate_json(out["text"])
             except ValidationError as e:
                 last_err = e
-                messages = messages + [{"role": "user", "content": f"That did not match the schema: {e.errors()[:3]}. Reply with valid JSON only."}]
+                messages = messages + [
+                    {"role": "user", "content": f"That did not match the schema: {e.errors()[:3]}. Reply with valid JSON only."}
+                ]
         raise ValueError(f"Model output failed validation twice: {last_err}")

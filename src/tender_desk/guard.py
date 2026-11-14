@@ -2,6 +2,7 @@
 
 Each defence is switchable (see Defenses) so the evaluation can measure what it adds.
 """
+
 from __future__ import annotations
 
 import os
@@ -11,17 +12,20 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Defenses:
-    delimit: bool = False          # wrap tender text in <tender> tags and neutralise any tag the attacker writes
+    delimit: bool = False  # wrap tender text in <tender> tags and neutralise any tag the attacker writes
     estimate_notice: bool = False  # tell the pricing step that scope lines are untrusted
-    bounds: bool = False           # cap what extraction may return (line count, text length, quantity)
-    qty_check: bool = False        # flag an extracted quantity that does not appear in the tender text
-    detector: bool = False         # flag instruction-like phrases in the tender text
-    coverage: bool = False         # flag when fewer items were extracted than the tender numbers
+    bounds: bool = False  # cap what extraction may return (line count, text length, quantity)
+    qty_check: bool = False  # flag an extracted quantity that does not appear in the tender text
+    detector: bool = False  # flag instruction-like phrases in the tender text
+    coverage: bool = False  # flag when fewer items were extracted than the tender numbers
 
 
 D0 = Defenses()
 D1 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True)
-D2 = Defenses(delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True, coverage=True)  # exploratory, added after seeing D0/D1 test results
+D2 = Defenses(
+    delimit=True, estimate_notice=True, bounds=True, qty_check=True, detector=True, coverage=True
+)  # exploratory, added after seeing D0/D1 test results
+
 
 def default_defenses() -> Defenses:
     """D2 unless TENDER_DESK_DEFENSES says otherwise (D0 = none, D1, D2). D2's evidence is partly exploratory, see the README."""
@@ -44,7 +48,9 @@ def quantity_in_text(qty: float, text: str) -> bool:
     'building permit fees' is one item without anyone writing '1'."""
     if abs(qty - 1) < 1e-9:
         return True
-    nums = {float(n.replace(",", "")) for n in re.findall(r"\d[\d,]*\.?\d*", text) if n.replace(",", "").replace(".", "").isdigit()}
+    nums = {
+        float(n.replace(",", "")) for n in re.findall(r"\d[\d,]*\.?\d*", text) if n.replace(",", "").replace(".", "").isdigit()
+    }
     nums |= {float(v) for w, v in _NUMBER_WORDS.items() if re.search(rf"\b{w}\b", text, re.I)}
     return any(abs(qty - n) < 1e-9 for n in nums)
 
