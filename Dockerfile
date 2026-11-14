@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS build
+FROM python:3.15-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /bin/uv
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
@@ -10,7 +10,7 @@ RUN uv sync --frozen --no-dev --no-editable
 ENV FASTEMBED_CACHE_PATH=/opt/fastembed
 RUN /app/.venv/bin/python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5')"
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --create-home app && mkdir /data && chown app /data
 COPY --from=build /app/.venv /app/.venv
