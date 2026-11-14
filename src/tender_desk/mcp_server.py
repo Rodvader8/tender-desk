@@ -1,7 +1,7 @@
 """MCP server: lets an AI agent look things up in the price list and past jobs. Read-only by construction.
 
 What it deliberately does NOT offer: any tool that writes, approves or saves a quote, runs SQL, or returns raw
-tender text. The database role (`tender_ro`, see sql/002_readonly_role.sql) enforces the same limits even if this
+tender text. The database role (`tender_ro`, see src/tender_desk/migrations/002_readonly_role.sql) enforces the same limits even if this
 code were wrong. Every tool is annotated read-only and every input is length-limited.
 
 Run over stdio (default):        uv run tender-mcp

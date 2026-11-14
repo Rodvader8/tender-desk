@@ -7,7 +7,9 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-GRANT CONNECT ON DATABASE tender TO tender_ro;
+DO $$ BEGIN
+  EXECUTE format('GRANT CONNECT ON DATABASE %I TO tender_ro', current_database());
+END $$;
 GRANT USAGE ON SCHEMA public TO tender_ro;
 GRANT SELECT ON price_items, past_quotes, past_quote_lines TO tender_ro;
 GRANT SELECT (id, title, status, created_at) ON tenders TO tender_ro;

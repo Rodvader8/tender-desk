@@ -22,9 +22,25 @@ from typing import TypeVar
 import httpx
 from pydantic import BaseModel, ValidationError
 
+from .observability import observe_llm
+
 BASE_URL = "https://openrouter.ai/api/v1"
 KEY_FILE = Path.home() / ".config" / "openrouter" / "key"
-LEDGER = Path(__file__).resolve().parents[2] / ".spend" / "ledger.jsonl"
+
+
+def _ledger_path() -> Path:
+    """TENDER_DESK_LEDGER if set (containers), else .spend/ in the project checkout, else the user's home."""
+    if os.environ.get("TENDER_DESK_LEDGER"):
+        return Path(os.environ["TENDER_DESK_LEDGER"])
+    checkout = Path(__file__).resolve().parents[2]
+    return (
+        checkout / ".spend" / "ledger.jsonl"
+        if (checkout / "pyproject.toml").exists()
+        else Path.home() / ".tender-desk" / "ledger.jsonl"
+    )
+
+
+LEDGER = _ledger_path()
 FALLBACK_USD_PER_TOKEN = 10e-6  # used only if the API omits cost; deliberately pessimistic
 
 T = TypeVar("T", bound=BaseModel)
@@ -125,6 +141,7 @@ class LLM:
     def _post(self, body: dict, purpose: str) -> tuple[dict, float, int]:
         """One guarded call. Returns (choice, cost, tokens)."""
         self.guard.check()
+        started = time.perf_counter()
         r = self._client.post(f"{BASE_URL}/chat/completions", json=body, headers={"Authorization": f"Bearer {self._key}"})
         r.raise_for_status()
         d = r.json()
@@ -132,6 +149,7 @@ class LLM:
         tokens = int(u.get("total_tokens", 0))
         cost = float(u["cost"]) if u.get("cost") is not None else tokens * FALLBACK_USD_PER_TOKEN
         self.guard.record(body["model"], cost, tokens, purpose)
+        observe_llm(body["model"], purpose, time.perf_counter() - started, cost, tokens)
         return d["choices"][0], cost, tokens
 
     def chat(

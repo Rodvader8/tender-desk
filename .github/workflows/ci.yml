@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: tender
+          POSTGRES_PASSWORD: tender
+          POSTGRES_DB: tender
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U tender -d tender"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TENDER_DESK_DB: postgresql://tender:tender@127.0.0.1:54329/tender
+      TENDER_DESK_RO_DB: postgresql://tender_ro:tender_ro@127.0.0.1:54329/tender
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Cache the embedding model
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/fastembed_cache
+          key: fastembed-bge-small-en-v1.5
+      - run: uv sync --frozen
+      - name: Lint, format check and types
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy
+      - name: Migrate and seed the invented data
+        run: |
+          uv run tender-migrate
+          uv run python scripts/seed.py
+      - name: "Tests (the model is replaced by a scripted fake, so no API key and no spend)"
+        run: uv run pytest -q
+      - name: Dependency audit
+        run: |
+          uv export --frozen --no-hashes --no-emit-project -o /tmp/requirements-audit.txt
+          uv run pip-audit -r /tmp/requirements-audit.txt --no-deps --disable-pip
+
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the image
+        run: docker build -t tender-desk:ci .
+      - name: The image runs as a non-root user and starts
+        run: |
+          test "$(docker run --rm tender-desk:ci id -u)" != "0"
+          docker run --rm tender-desk:ci python -c "import tender_desk.api, tender_desk.mcp_server; print('imports ok')"

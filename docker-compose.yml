@@ -1,4 +1,9 @@
-# Local development database only. The credentials below are throwaway test values.
+# One command to run everything:
+#   export OPENROUTER_API_KEY=...   TENDER_DESK_API_TOKEN=...   (any long random string)
+#   docker compose up --build
+# Then open http://127.0.0.1:8000 and enter the token. Seed the invented data once:
+#   docker compose run --rm app python scripts/seed.py
+# The database credentials below are throwaway development values and the ports bind to 127.0.0.1 only.
 services:
   db:
     image: pgvector/pgvector:pg17
@@ -7,13 +12,37 @@ services:
       POSTGRES_PASSWORD: tender
       POSTGRES_DB: tender
     ports:
-      - "127.0.0.1:54329:5432"
+      - "127.0.0.1:${DB_PORT:-54329}:5432"
     volumes:
       - tender_db:/var/lib/postgresql/data
-      - ./sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tender -d tender"]
       interval: 3s
       retries: 20
+
+  migrate:
+    build: .
+    command: ["tender-migrate"]
+    environment:
+      TENDER_DESK_DB: postgresql://tender:tender@db:5432/tender
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    environment:
+      TENDER_DESK_DB: postgresql://tender:tender@db:5432/tender
+      TENDER_DESK_API_TOKEN: ${TENDER_DESK_API_TOKEN:?set TENDER_DESK_API_TOKEN to any long random string}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?set OPENROUTER_API_KEY}
+    volumes:
+      - tender_ledger:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
 volumes:
   tender_db:
+  tender_ledger:
