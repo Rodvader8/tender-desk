@@ -29,21 +29,55 @@ Design rules, each enforced in code and covered by a test:
 
 ## Run it
 
+**Everything in containers, one command** (needs Docker, an OpenRouter key and any long random string as the API token):
+
 ```bash
-docker compose up -d                       # Postgres 17 + pgvector, seeded from sql/
-uv sync
-uv run python scripts/seed.py              # invented price list, 30 past jobs
-uv run pytest                              # 55 tests, no API cost
+export OPENROUTER_API_KEY=...            # your key; it is passed to the container, never baked into the image
+export TENDER_DESK_API_TOKEN=...         # e.g. $(openssl rand -hex 24)
+docker compose up --build                # Postgres + pgvector, migrations, then the app on 127.0.0.1:8000
+docker compose run --rm app python scripts/seed.py   # once: the invented price list and 30 past jobs
+```
+
+Open http://127.0.0.1:8000 and enter the token.
+
+**For development:**
+
+```bash
+docker compose up -d db && uv sync
+uv run tender-migrate                      # applies src/tender_desk/migrations in order, once each
+uv run python scripts/seed.py
+uv run pytest                              # 69 tests, no API cost, no key needed
+uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
 ```
 
 The model key is read from `OPENROUTER_API_KEY` or `~/.config/openrouter/key`. Model is configurable: `TENDER_DESK_MODEL` (default `deepseek/deepseek-v4-flash`).
 
+## Operating it
+
+| setting (environment variable) | meaning |
+|---|---|
+| `TENDER_DESK_API_TOKEN` | required: the bearer token for every `/tenders` route and `/metrics`. The server refuses to start without it unless `TENDER_DESK_ALLOW_NO_AUTH=1` (local development) |
+| `TENDER_DESK_DB`, `TENDER_DESK_RO_DB` | database for the app and migrations, and the read-only role the MCP server uses |
+| `TENDER_DESK_RO_PASSWORD` | sets the read-only role's password when migrating (the development default is `tender_ro`) |
+| `TENDER_DESK_MAX_TENDERS_PER_MIN` | limit on creating tenders (default 10), because each one spends money |
+| `TENDER_DESK_RUN_CAP_USD`, `_PROJECT_CAP_USD`, `_ACCOUNT_FLOOR_USD`, `_KEY_FLOOR_USD` | the spend limits |
+| `TENDER_DESK_DEFENSES` | `D0`, `D1` or `D2` (default), the prompt-injection defences |
+| `TENDER_DESK_LOG_LEVEL` | default `INFO` |
+
+- **Auth.** One shared bearer token, compared in constant time. There are no user accounts, so the reviewer name on a decision is typed in, not authenticated. Do not expose this to the internet without putting real authentication in front of it.
+- **Migrations.** `tender-migrate` applies the SQL files once each, under a lock, and records them in `schema_migrations`. A database created before the runner existed is adopted without re-running anything. A failing migration rolls back completely.
+- **Logs.** One JSON line per request: method, route template, status, milliseconds and a request ID (an incoming `X-Request-ID` is echoed only if it is plain, so it cannot forge log lines). Logs never contain the token, an API key, tender text or model output, and a test enforces that.
+- **Metrics.** `GET /metrics` (Prometheus format, needs the token): requests and latency by route, model calls, tokens, **cost in dollars and latency by model and purpose**, workflow step durations, and tender events (created, approved, rejected, stopped, failed).
+- **Container.** Multi-stage image, runs as a non-root user, the embedding model is baked in so nothing downloads at start-up, health check on `/health`, ports bound to 127.0.0.1.
+- **CI** (`.github/workflows/ci.yml`): lint, format check, types, migrations, seed, the full test suite against a real pgvector Postgres with no API key, a dependency audit, and an image build that checks it runs as non-root. Actions are pinned to commit hashes and Dependabot watches them, the Python dependencies and the base image. I ran the same steps from a fresh clone against an empty database, which found one test that had only passed on my development data. GitHub itself has not run the workflow yet.
+- **Not done:** a cloud deployment (Terraform on Azure or GCP), user accounts, secrets management beyond environment variables, load testing.
+
 ## API and approval screen
 
 ```bash
-uv run uvicorn tender_desk.api:build_default_app --factory --host 127.0.0.1 --port 8765
+TENDER_DESK_API_TOKEN=... uv run uvicorn tender_desk.api:build_default_app --factory --host 127.0.0.1 --port 8765
 ```
 
 Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced quote, and a reviewer approves or rejects it on the screen. Flagged lines are highlighted and lines with no price are excluded from the total. Rejecting with notes asks for one revised draft; rejecting without notes closes the tender. The audit trail for every tender is on the page.
@@ -57,7 +91,7 @@ Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced qu
 - **Paused quotes survive a restart.** Workflow state is checkpointed in Postgres. A test starts a tender on one server, discards it, and approves it from a second server with a new connection pool and nothing in memory.
 - **Spend limits apply per request.** A tender that hits the cap returns 503 and is marked `stopped_by_spend_limit`. Unexpected errors return a generic 500 and never expose exception text or keys.
 - **The screen treats everything as untrusted text.** Tender text and model output are written with `textContent`, never HTML. A strict Content-Security-Policy is set, there are no inline styles or scripts, and a test fails if `innerHTML`, `eval` or `document.write` appears in the page code.
-- **Local use only.** There is no login. It binds to 127.0.0.1 and must not be exposed as it stands. The reviewer name is typed in, not authenticated.
+- **Authenticated, not multi-user.** Every `/tenders` route needs the bearer token and tender creation is rate limited (see Operating it). The reviewer name is typed in, not authenticated.
 - Checked in a browser at desktop and phone width (the table scrolls inside its own box, the page does not).
 
 ## MCP server and agent client
@@ -66,7 +100,7 @@ Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced qu
 
 ```bash
 uv run tender-mcp                               # stdio (what an MCP client launches)
-uv run tender-mcp --transport streamable-http   # 127.0.0.1 only, no login
+uv run tender-mcp --transport streamable-http   # 127.0.0.1 only, no login (stdio is the normal use)
 uv run python scripts/mcp_demo.py "sparkie hours on site"   # an agent using it, live
 ```
 
@@ -236,7 +270,7 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 55 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the API and approval screen, the evaluation harness, 69 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
 
 Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. 
 
