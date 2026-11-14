@@ -137,6 +137,16 @@ Fresh set of 27 queries written and committed before the run (`evals/holdout3.js
 - One agent run hit the step limit and returned no match, which happened to be correct.
 - Limits: 27 queries, one run per model, queries written by the same AI assistant that built the system, invented catalogue. It supports "an agent with these tools handles slang better than a fixed pipeline here", not a general claim.
 
+## Provenance: what you can and can't check
+
+Several claims here depend on order: test sets and pass criteria "committed before the run". What a reader can verify, and what they can't:
+
+- **`SHA256SUMS`** lists the hash of every file in `results/` and `evals/` (the result files, the frozen question sets, the pre-registration notes). `scripts/checksums.sh check` confirms none has been edited since the manifest was written, and CI runs it. On its own this proves consistency, not honesty: whoever controls the repo could regenerate the manifest. Its value comes from being published in a tagged release whose commit hash I also give in my applications, so a later change is visible against a record that already exists elsewhere.
+- **Commit order and messages** are in `git log`. Git timestamps are self-reported, so they are evidence of sequence, not proof of when.
+- **History was rewritten once before publication**, to remove a personal email address and two dummy key strings from early commits. Commit messages, order, dates and the final file tree are unchanged; only the commit hashes differ from the working copy.
+- **Signing:** every commit so far is unsigned. If that changes, this line will say from which commit.
+- The test sets and labels were written by an AI assistant, as the evaluation sections say. That is a limit on the evidence whatever the hashes show.
+
 ## Evaluation
 
 74 labelled queries against the 66-item catalogue: 66 real ones (one per item, written in tender language, not copied from catalogue names) and 8 for work that is not in the catalogue. Split 29 tuning / 45 held-out before any scoring. Nothing was tuned on the held-out set.

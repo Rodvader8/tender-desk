@@ -53,6 +53,8 @@ jobs:
           uv run python scripts/seed.py
       - name: "Tests (the model is replaced by a scripted fake, so no API key and no spend)"
         run: uv run pytest -q
+      - name: Results and frozen test sets match their checksums
+        run: scripts/checksums.sh check
       - name: Dependency audit
         run: |
           uv export --frozen --no-hashes --no-emit-project -o /tmp/requirements-audit.txt
