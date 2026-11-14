@@ -144,7 +144,7 @@ Several claims here depend on order: test sets and pass criteria "committed befo
 - **`SHA256SUMS`** lists the hash of every file in `results/` and `evals/` (the result files, the frozen question sets, the pre-registration notes). `scripts/checksums.sh check` confirms none has been edited since the manifest was written, and CI runs it. On its own this proves consistency, not honesty: whoever controls the repo could regenerate the manifest. Its value comes from being published in a tagged release whose commit hash I also give in my applications, so a later change is visible against a record that already exists elsewhere.
 - **Commit order and messages** are in `git log`. Git timestamps are self-reported, so they are evidence of sequence, not proof of when.
 - **History was rewritten once before publication**, to remove a personal email address and two dummy key strings from early commits. Commit messages, order, dates and the final file tree are unchanged; only the commit hashes differ from the working copy.
-- **Signing:** every commit so far is unsigned. If that changes, this line will say from which commit.
+- **Signing:** every commit is signed with an SSH key (fingerprint `SHA256:/KGN6T/NqNJEFDrPFO1M+4UTDSyHz06jR/Owc8eACPQ`). The whole history was signed in one pass on 15 Nov 2026, just before it was published, so a signature shows the key holder stands behind the published history, not that each commit was signed the moment it was first written.
 - The test sets and labels were written by an AI assistant, as the evaluation sections say. That is a limit on the evidence whatever the hashes show.
 
 ## Evaluation
