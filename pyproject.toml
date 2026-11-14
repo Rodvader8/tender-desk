@@ -1,10 +1,13 @@
 [project]
 name = "tender-desk"
 version = "0.1.0"
-description = "Add your description here"
+description = "Construction tender pricing agent with a human approval step, an evaluation harness, injection defences and an MCP server"
+readme = "README.md"
 authors = [
     { name = "Rod Fernandez", email = "hello@rodfernandezdesign.com" }
 ]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.162.7",
