@@ -22,6 +22,7 @@ from langgraph.types import Command, interrupt
 
 from .guard import Defenses, default_defenses, injection_phrases, neutralise, numbered_items, quantity_in_text
 from .models import BoundedScope, Draft, QuoteLine, Scope
+from .observability import timed_step
 from .pricing import build_offer, choose_prices
 from .search import comparable_jobs, price_candidates
 from .specs import spec_conflicts
@@ -195,7 +196,7 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
         ("approval", approval),
         ("finalize", finalize),
     ]:
-        g.add_node(name, fn)
+        g.add_node(name, timed_step(name, fn))
     g.add_edge(START, "extract")
     g.add_edge("extract", "retrieve")
     g.add_edge("retrieve", "estimate")

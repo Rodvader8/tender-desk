@@ -1,0 +1,14 @@
+.git
+.venv
+.spend
+.pytest_cache
+.ruff_cache
+.mypy_cache
+__pycache__
+results
+evals
+tests
+.claude
+CLAUDE.md
+AGENTS.md
+.env

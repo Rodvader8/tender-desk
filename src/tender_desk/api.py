@@ -10,20 +10,28 @@ Everything shown on the screen is untrusted text (tender text, model output) and
 
 from __future__ import annotations
 
+import logging
+import re
+import time
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
 from .graph import audit, build_graph, create_tender, decide, start
 from .llm import LLM, BudgetExceeded
+from .observability import HTTP_REQUESTS, HTTP_SECONDS, REGISTRY, TENDERS, configure_logging
 from .security import RateLimiter, make_auth
 
 STATIC = Path(__file__).parent / "static"
+log = logging.getLogger("tender_desk.api")
+_REQUEST_ID = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")  # an incoming id is only echoed if it is plain, so it cannot forge log lines
 
 
 class TenderIn(BaseModel):
@@ -74,15 +82,47 @@ def create_app(
         except BudgetExceeded as e:
             conn.execute("UPDATE tenders SET status='stopped_by_spend_limit' WHERE id=%s", (tid,))
             audit(conn, tid, "stopped", reason=str(e))
+            TENDERS.labels("stopped").inc()
+            log.warning("tender_stopped_by_spend_limit", extra={"tender_id": tid})
             raise HTTPException(503, f"Stopped by spend limit: {e}") from e
         except HTTPException:
             raise
         except Exception as e:  # never leak internals or keys to the browser
             conn.execute("UPDATE tenders SET status='failed' WHERE id=%s", (tid,))
             audit(conn, tid, "error", type=type(e).__name__)
+            TENDERS.labels("failed").inc()
+            log.error("tender_failed", extra={"tender_id": tid, "error_type": type(e).__name__})
             raise HTTPException(500, "The workflow failed. See the audit log.") from e
 
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+    @app.middleware("http")
+    async def observe(request: Request, call_next):
+        given = request.headers.get("x-request-id", "")
+        rid = given if _REQUEST_ID.match(given) else uuid.uuid4().hex[:12]
+        started = time.perf_counter()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            response.headers["X-Request-ID"] = rid
+            return response
+        finally:
+            route = getattr(request.scope.get("route"), "path", "unmatched")
+            took = time.perf_counter() - started
+            HTTP_REQUESTS.labels(request.method, route, str(status)).inc()
+            HTTP_SECONDS.labels(route).observe(took)
+            # method, route template, status, timing and an id. Never headers, bodies or query strings.
+            log.info(
+                "request",
+                extra={
+                    "request_id": rid,
+                    "method": request.method,
+                    "route": route,
+                    "status": status,
+                    "ms": round(took * 1000, 1),
+                },
+            )
 
     @app.middleware("http")
     async def security_headers(request, call_next):
@@ -95,6 +135,10 @@ def create_app(
     @app.get("/", include_in_schema=False)
     def index():
         return FileResponse(STATIC / "index.html")
+
+    @app.get("/metrics", dependencies=[auth], include_in_schema=False)
+    def metrics():
+        return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/health")
     def health():
@@ -123,6 +167,7 @@ def create_app(
     def create(body: TenderIn):
         limiter.check()
         tid = create_tender(conn, body.title, body.text)
+        TENDERS.labels("created").inc()
         _, res = guarded(tid, lambda: start(graph(), tid, body.text))
         return {**tender_row(tid), "draft": res["__interrupt__"][0].value["draft"]}
 
@@ -158,6 +203,8 @@ def create_app(
             raise HTTPException(409, f"This tender is {t['status']}, not awaiting approval")
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
         res = guarded(tid, lambda: decide(graph(), cfg, body.approve, body.by.strip(), body.notes.strip()))
+        TENDERS.labels("approved" if body.approve else "rejected").inc()
+        log.info("tender_decision", extra={"tender_id": tid, "approved": body.approve})
         out = tender_row(tid)
         if "__interrupt__" in res:  # rejected with notes: a revised draft is waiting
             out["draft"] = res["__interrupt__"][0].value["draft"]
@@ -169,6 +216,7 @@ def create_app(
 def build_default_app() -> FastAPI:
     import os
 
+    configure_logging()
     from langgraph.checkpoint.postgres import PostgresSaver
     from psycopg import Connection
     from psycopg.rows import dict_row

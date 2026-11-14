@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -174,3 +175,68 @@ def test_rate_limiter_window_slides():
     assert e.value.status_code == 429
     now[0] = 61
     rl.check()  # the first two have aged out
+
+
+def test_logs_are_json_with_a_request_id_and_never_contain_the_token_or_tender_text(conn, caplog):
+    import json as _json
+    import logging
+
+    from tender_desk.observability import JsonFormatter
+
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    secret_text = "UNIQUE-TENDER-WORDS-12345 " + TENDER["text"]
+    with caplog.at_level(logging.INFO, logger="tender_desk.api"):
+        r = c.post("/tenders", json={"title": "TEST logs", "text": secret_text}, headers={"X-Request-ID": "abc-123"})
+    assert r.status_code == 201 and r.headers["x-request-id"] == "abc-123"
+    lines = [_json.loads(JsonFormatter().format(rec)) for rec in caplog.records if rec.name == "tender_desk.api"]
+    req = next(ln for ln in lines if ln["msg"] == "request")
+    assert req["request_id"] == "abc-123" and req["route"] == "/tenders" and req["status"] == 201 and req["method"] == "POST"
+    blob = _json.dumps(lines)
+    assert TOKEN not in blob and "UNIQUE-TENDER-WORDS" not in blob and "Authorization" not in blob
+
+
+def test_a_forged_request_id_is_replaced(conn):
+    c = client(conn, FakeLLM(SCOPE, []))
+    r = c.get("/health", headers={"X-Request-ID": 'x"}\n{"level":"CRITICAL"'})
+    assert re.fullmatch(r"[0-9a-f]{12}", r.headers["x-request-id"])
+
+
+def test_metrics_endpoint_needs_the_token_and_counts_calls_cost_and_steps(conn):
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    assert TestClient(c.app).get("/metrics").status_code == 401
+    c.post("/tenders", json=TENDER)
+    text = c.get("/metrics").text
+    assert 'tender_http_requests_total{method="POST",route="/tenders",status="201"}' in text
+    assert (
+        'tender_workflow_step_seconds_count{step="extract"}' in text and 'tender_workflow_events_total{event="created"}' in text
+    )
+    assert "UNIQUE" not in text and TOKEN not in text
+
+
+def test_model_calls_are_recorded_with_cost_and_latency(tmp_path):
+    import httpx
+
+    from tender_desk.llm import LLM, Ledger
+    from tender_desk.observability import REGISTRY
+
+    def handler(req):
+        if req.url.path.endswith(("/key", "/credits")):
+            return httpx.Response(200, json={"data": {"limit_remaining": 50, "total_credits": 110, "total_usage": 10}})
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": "hi"}}], "usage": {"total_tokens": 12, "cost": 0.0042}}
+        )
+
+    llm = LLM(
+        model="metric-test-model",
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        ledger=Ledger(tmp_path / "l.jsonl"),
+        key="dummy-key-for-tests-only",
+    )
+    llm.chat([{"role": "user", "content": "x"}], purpose="metric-test")
+    assert REGISTRY.get_sample_value(
+        "tender_llm_cost_usd_total", {"model": "metric-test-model", "purpose": "metric-test"}
+    ) == pytest.approx(0.0042)
+    assert REGISTRY.get_sample_value("tender_llm_calls_total", {"model": "metric-test-model", "purpose": "metric-test"}) == 1
+    assert (
+        REGISTRY.get_sample_value("tender_llm_call_seconds_count", {"model": "metric-test-model", "purpose": "metric-test"}) == 1
+    )
