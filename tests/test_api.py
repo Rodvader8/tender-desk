@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.memory import MemorySaver
 from test_workflow import SCOPE, FakeLLM, good_choices
@@ -10,8 +12,14 @@ from tender_desk.llm import BudgetExceeded
 TENDER = {"title": "TEST api tender", "text": "Build a rear extension. 10 m3 concrete. 40 hours framing."}
 
 
-def client(conn, llm, saver=None):
-    return TestClient(create_app(llm_factory=lambda: llm, conn=conn, checkpointer=saver or MemorySaver()))
+TOKEN = "test-token-not-a-real-secret"
+
+
+def client(conn, llm, saver=None, **kw):
+    app = create_app(
+        llm_factory=lambda: llm, conn=conn, checkpointer=saver or MemorySaver(), api_token=kw.pop("api_token", TOKEN), **kw
+    )
+    return TestClient(app, headers={"Authorization": f"Bearer {TOKEN}"})
 
 
 def test_full_flow_create_review_approve(conn):
@@ -109,3 +117,60 @@ def test_paused_quote_survives_a_server_restart(conn):
         for t in ("checkpoint_writes", "checkpoint_blobs", "checkpoints"):
             conn.execute(f"DELETE FROM {t} WHERE thread_id=%s", (thread,))
         pool2.close()
+
+
+def test_routes_need_the_token_but_health_and_the_screen_do_not(conn):
+    c = client(conn, FakeLLM(SCOPE, []))
+    bare = TestClient(c.app)  # no Authorization header
+    assert bare.get("/health").status_code == 200 and bare.get("/").status_code == 200
+    for method, path in [("get", "/tenders"), ("post", "/tenders"), ("get", "/tenders/1"), ("post", "/tenders/1/decision")]:
+        r = getattr(bare, method)(path)
+        assert r.status_code == 401 and r.headers["www-authenticate"] == "Bearer", (method, path)
+    wrong = TestClient(c.app, headers={"Authorization": "Bearer nope"})
+    assert wrong.get("/tenders").status_code == 401
+    assert TestClient(c.app, headers={"Authorization": f"Token {TOKEN}"}).get("/tenders").status_code == 401  # wrong scheme
+    assert c.get("/tenders").status_code == 200
+
+
+def test_a_wrong_token_never_reaches_the_workflow_or_spends_anything(conn):
+    llm = FakeLLM(SCOPE, [])
+    wrong = TestClient(client(conn, llm).app, headers={"Authorization": "Bearer nope"})
+    assert wrong.post("/tenders", json=TENDER).status_code == 401 and llm.prompts == []
+
+
+def test_it_refuses_to_exist_without_a_token_unless_told_to(conn):
+    with pytest.raises(ValueError, match="api_token is required"):
+        create_app(llm_factory=lambda: None, conn=conn, checkpointer=MemorySaver(), api_token=None)
+    open_app = create_app(llm_factory=lambda: None, conn=conn, checkpointer=MemorySaver(), api_token=None, allow_no_auth=True)
+    assert TestClient(open_app).get("/tenders").status_code == 200
+
+
+def test_default_app_will_not_start_without_a_token(monkeypatch):
+    from tender_desk.api import build_default_app
+
+    monkeypatch.delenv("TENDER_DESK_API_TOKEN", raising=False)
+    monkeypatch.delenv("TENDER_DESK_ALLOW_NO_AUTH", raising=False)
+    with pytest.raises(RuntimeError, match="TENDER_DESK_API_TOKEN"):
+        build_default_app()
+
+
+def test_creating_tenders_is_rate_limited(conn):
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn), good_choices(conn), good_choices(conn)]), max_tenders_per_minute=2)
+    assert c.post("/tenders", json=TENDER).status_code == 201 and c.post("/tenders", json=TENDER).status_code == 201
+    third = c.post("/tenders", json=TENDER)
+    assert third.status_code == 429 and int(third.headers["retry-after"]) >= 1
+    assert c.get("/tenders").status_code == 200  # reading is not limited
+
+
+def test_rate_limiter_window_slides():
+    from tender_desk.security import RateLimiter
+
+    now = [0.0]
+    rl = RateLimiter(2, 60, clock=lambda: now[0])
+    rl.check()
+    rl.check()
+    with pytest.raises(HTTPException) as e:
+        rl.check()
+    assert e.value.status_code == 429
+    now[0] = 61
+    rl.check()  # the first two have aged out

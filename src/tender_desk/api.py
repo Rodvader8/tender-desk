@@ -1,6 +1,8 @@
 """HTTP API and approval screen.
 
-Local use only: it has no login, so it binds to 127.0.0.1 and must not be exposed as is.
+Every /tenders route needs `Authorization: Bearer <TENDER_DESK_API_TOKEN>`. The server refuses to start without a token unless
+TENDER_DESK_ALLOW_NO_AUTH=1 (local development). Creating tenders is rate limited because each one spends money on a model.
+There is one shared token and no user accounts: the reviewer name is typed in, not authenticated.
 Everything shown on the screen is untrusted text (tender text, model output) and is rendered as text, never as HTML.
 
   uv run uvicorn tender_desk.api:build_default_app --factory --port 8000
@@ -12,13 +14,14 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .graph import audit, build_graph, create_tender, decide, start
 from .llm import LLM, BudgetExceeded
+from .security import RateLimiter, make_auth
 
 STATIC = Path(__file__).parent / "static"
 
@@ -34,8 +37,20 @@ class DecisionIn(BaseModel):
     notes: str = Field("", max_length=2000)
 
 
-def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> FastAPI:
+def create_app(
+    *,
+    llm_factory: Callable[[], object],
+    conn,
+    checkpointer,
+    api_token: str | None,
+    allow_no_auth: bool = False,
+    max_tenders_per_minute: int = 10,
+) -> FastAPI:
+    if api_token is None and not allow_no_auth:
+        raise ValueError("api_token is required (pass allow_no_auth=True only for local development)")
     app = FastAPI(title="Tender Desk", version="0.1.0")
+    auth = Depends(make_auth(api_token))
+    limiter = RateLimiter(max_tenders_per_minute)
 
     def graph():
         # a fresh LLM per request, so each tender gets its own per-run spend cap
@@ -86,7 +101,7 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
         conn.execute("SELECT 1")
         return {"ok": True}
 
-    @app.get("/tenders")
+    @app.get("/tenders", dependencies=[auth])
     def list_tenders():
         rows = conn.execute(
             "SELECT t.id, t.title, t.status, t.created_at, q.total FROM tenders t "
@@ -104,13 +119,14 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
             for r in rows
         ]
 
-    @app.post("/tenders", status_code=201)
+    @app.post("/tenders", status_code=201, dependencies=[auth])
     def create(body: TenderIn):
+        limiter.check()
         tid = create_tender(conn, body.title, body.text)
         _, res = guarded(tid, lambda: start(graph(), tid, body.text))
         return {**tender_row(tid), "draft": res["__interrupt__"][0].value["draft"]}
 
-    @app.get("/tenders/{tid}")
+    @app.get("/tenders/{tid}", dependencies=[auth])
     def get_tender(tid: int):
         t = tender_row(tid)
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
@@ -135,7 +151,7 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
             "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail],
         }
 
-    @app.post("/tenders/{tid}/decision")
+    @app.post("/tenders/{tid}/decision", dependencies=[auth])
     def decision(tid: int, body: DecisionIn):
         t = tender_row(tid)
         if t["status"] != "awaiting_approval":
@@ -151,6 +167,8 @@ def create_app(*, llm_factory: Callable[[], object], conn, checkpointer) -> Fast
 
 
 def build_default_app() -> FastAPI:
+    import os
+
     from langgraph.checkpoint.postgres import PostgresSaver
     from psycopg import Connection
     from psycopg.rows import dict_row
@@ -158,9 +176,23 @@ def build_default_app() -> FastAPI:
 
     from .db import DSN, connect
 
+    token = os.environ.get("TENDER_DESK_API_TOKEN") or None
+    allow_no_auth = os.environ.get("TENDER_DESK_ALLOW_NO_AUTH") == "1"
+    if token is None and not allow_no_auth:
+        raise RuntimeError(
+            "Set TENDER_DESK_API_TOKEN (any long random string). For local development only: TENDER_DESK_ALLOW_NO_AUTH=1."
+        )
+
     pool: ConnectionPool[Connection[dict[str, Any]]] = ConnectionPool(
         DSN, min_size=1, max_size=5, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True
     )
     saver = PostgresSaver(pool)
     saver.setup()
-    return create_app(llm_factory=LLM, conn=connect(), checkpointer=saver)
+    return create_app(
+        llm_factory=LLM,
+        conn=connect(),
+        checkpointer=saver,
+        api_token=token,
+        allow_no_auth=allow_no_auth,
+        max_tenders_per_minute=int(os.environ.get("TENDER_DESK_MAX_TENDERS_PER_MIN", "10")),
+    )

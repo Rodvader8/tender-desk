@@ -26,11 +26,31 @@ function el(tag, attrs = {}, ...kids) {
 }
 let toastTimer;
 function say(msg) { const s = $("status"); s.textContent = msg; s.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => s.classList.remove("show"), 3500); }
+const TOKEN_KEY = "tender_desk_token";
+const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ""; } catch (_) { return ""; } };
+
 async function api(path, opts) {
-  const r = await fetch(path, opts && opts.body ? { ...opts, headers: { "Content-Type": "application/json" } } : opts);
+  const headers = { Authorization: "Bearer " + getToken() };
+  if (opts && opts.body) headers["Content-Type"] = "application/json";
+  const r = await fetch(path, { ...(opts || {}), headers });
   const data = await r.json().catch(() => ({}));
+  if (r.status === 401) { askToken(); throw new Error("Enter your API token to continue."); }
   if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong (" + r.status + ")");
   return data;
+}
+
+// The token lives in sessionStorage only: it is gone when the tab closes.
+function askToken() {
+  const input = el("input", { id: "tok", type: "password", autocomplete: "off", placeholder: "API token" });
+  const go = el("button", { class: "btn primary", type: "button" }, "Continue");
+  go.addEventListener("click", () => {
+    try { sessionStorage.setItem(TOKEN_KEY, input.value.trim()); } catch (_) {}
+    refreshList().then(newForm).catch((e) => say(e.message));
+  });
+  $("main").replaceChildren(el("h2", { text: "API token" }),
+    el("p", { class: "hint", text: "This server needs its API token (TENDER_DESK_API_TOKEN). It is kept for this browser tab only." }),
+    el("label", { for: "tok", text: "Token" }), input, el("div", { class: "row" }, go));
+  input.focus();
 }
 const badge = (s) => el("span", { class: "badge " + s, text: s.replaceAll("_", " ") });
 
