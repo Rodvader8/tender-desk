@@ -85,9 +85,14 @@ def test_check_spec_blocks_the_wrong_size_and_passes_the_right_one():
     assert unit["compatible"] is False and unit["unit_note"]
 
 
-def test_tender_listing_never_exposes_text_drafts_or_notes():
-    rows = run(call("list_tenders", {"limit": 5})).structured_content["result"]
-    assert rows and all(set(r) == {"id", "title", "status", "created_at", "quote_total"} for r in rows)
+def test_tender_listing_never_exposes_text_drafts_or_notes(conn):
+    conn.execute(
+        "INSERT INTO tenders (title, raw_text, status) VALUES ('TEST mcp listing', 'SECRET-RAW-TENDER-TEXT', 'received')"
+    )
+    rows = run(call("list_tenders", {"limit": 25})).structured_content["result"]
+    assert any(r["title"] == "TEST mcp listing" for r in rows)
+    assert all(set(r) == {"id", "title", "status", "created_at", "quote_total"} for r in rows)
+    assert "SECRET-RAW-TENDER-TEXT" not in str(rows)
 
 
 def test_the_database_role_itself_cannot_write_or_read_sensitive_columns():
