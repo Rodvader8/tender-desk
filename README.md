@@ -285,3 +285,7 @@ Working: the full workflow, the API and approval screen, the evaluation harness,
 Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. 
 
 **Observed while building the screen:** the model sometimes merges two tender items into one line (it merged concrete and mesh in one live run and split them in the next). The workflow flags the merged line as unpriced rather than guessing, but extraction is not deterministic and is not yet evaluated.
+
+## Licence
+
+MIT, see `LICENSE`. The data in this repository is invented.
