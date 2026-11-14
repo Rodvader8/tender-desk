@@ -57,4 +57,5 @@ class BoundedScopeItem(ScopeItem):
 
 
 class BoundedScope(Scope):
-    items: list[BoundedScopeItem] = Field(max_length=40)
+    # narrows the parent's item type on purpose: the bounded variant caps line count, text length and quantity
+    items: list[BoundedScopeItem] = Field(max_length=40)  # type: ignore[assignment]

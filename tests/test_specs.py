@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tender_desk.specs import spec_conflicts, spec_tokens
 
-PAIRS = [json.loads(l) for l in (Path(__file__).parents[1] / "evals" / "spec_pairs.jsonl").read_text().splitlines()]
+PAIRS = [json.loads(line) for line in (Path(__file__).parents[1] / "evals" / "spec_pairs.jsonl").read_text().splitlines()]
 KNOWN_GAP = {"s024"}  # item name has a bare number with no unit, so it carries no typed spec
 
 

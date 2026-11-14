@@ -14,5 +14,8 @@ def summarise(results: list[tuple[list[int], int]]) -> dict:
     n = len(results)
     if n == 0:
         return {"n": 0}
-    return {"n": n, **{f"hit@{k}": round(sum(hit_at(r, g, k) for r, g in results) / n, 3) for k in (1, 3, 4, 5)},
-            "mrr": round(sum(reciprocal_rank(r, g) for r, g in results) / n, 3)}
+    return {
+        "n": n,
+        **{f"hit@{k}": round(sum(hit_at(r, g, k) for r, g in results) / n, 3) for k in (1, 3, 4, 5)},
+        "mrr": round(sum(reciprocal_rank(r, g) for r, g in results) / n, 3),
+    }

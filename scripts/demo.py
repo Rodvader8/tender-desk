@@ -2,6 +2,7 @@
 Usage: uv run python scripts/demo.py examples/tender_rear_extension.txt [--approve]
 Spend is capped by the guard in tender_desk.llm (see `uv run spend`).
 """
+
 import sys
 from pathlib import Path
 
@@ -20,9 +21,11 @@ def main() -> None:
     tid, cfg, res = submit(conn, g, path.stem, path.read_text())
     draft = res["__interrupt__"][0].value["draft"]
     print(f"Tender {tid}: {draft['job_summary']}\n")
-    for i, l in enumerate(draft["lines"], 1):
-        print(f"{i:>2}. {l['description'][:52]:<52} {l['qty']:>7} {l['unit']:<5} -> {(l['item_name'] or 'NO MATCH')[:34]:<34} ${l['line_total']:>9,.2f}  {l['confidence']}")
-        for f in l["flags"]:
+    for i, ln in enumerate(draft["lines"], 1):
+        print(
+            f"{i:>2}. {ln['description'][:52]:<52} {ln['qty']:>7} {ln['unit']:<5} -> {(ln['item_name'] or 'NO MATCH')[:34]:<34} ${ln['line_total']:>9,.2f}  {ln['confidence']}"
+        )
+        for f in ln["flags"]:
             print(f"      ! {f}")
     print(f"\nSubtotal ${draft['subtotal']:,.2f}  margin {draft['margin_pct']}%  TOTAL ${draft['total']:,.2f}")
     print(f"Waiting for a person. Run cost ${llm.guard.run_spent:.5f} over {llm.guard.calls} model calls.")

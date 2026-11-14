@@ -14,7 +14,9 @@ def test_metrics():
 
 
 def test_eval_set_is_well_formed():
-    rows = [json.loads(l) for l in (Path(__file__).parents[1] / "evals" / "retrieval_queries.jsonl").read_text().splitlines()]
+    rows = [
+        json.loads(line) for line in (Path(__file__).parents[1] / "evals" / "retrieval_queries.jsonl").read_text().splitlines()
+    ]
     assert len({r["id"] for r in rows}) == len(rows)
     assert {r["split"] for r in rows} == {"dev", "test"}
     assert sum(r["gold"] is None for r in rows) == 8
@@ -25,6 +27,7 @@ def test_in_memory_search_matches_production_pgvector():
     from tender_desk.db import connect
     from tender_desk.evals.retrievers import Catalogue
     from tender_desk.search import price_candidates
+
     try:
         conn = connect()
     except Exception:

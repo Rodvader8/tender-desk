@@ -1,4 +1,5 @@
 """`uv run spend` - show account balance, key limit and this project's spend. Prints numbers only."""
+
 import httpx
 
 from .llm import LEDGER, Ledger, Limits, fetch_status, load_key

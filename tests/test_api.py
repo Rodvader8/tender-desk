@@ -1,10 +1,9 @@
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.memory import MemorySaver
-
 from test_workflow import SCOPE, FakeLLM, good_choices
+
 from tender_desk.api import create_app
 from tender_desk.llm import BudgetExceeded
 
@@ -50,8 +49,11 @@ def test_reject_with_notes_returns_a_revised_draft_waiting(conn):
 
 
 class Exploding:
-    def __init__(self, exc): self.exc = exc
-    def structured(self, *a, **k): raise self.exc
+    def __init__(self, exc):
+        self.exc = exc
+
+    def structured(self, *a, **k):
+        raise self.exc
 
 
 def test_spend_limit_gives_503_and_marks_the_tender(conn):
@@ -83,11 +85,16 @@ def test_paused_quote_survives_a_server_restart(conn):
     from langgraph.checkpoint.postgres import PostgresSaver
     from psycopg.rows import dict_row
     from psycopg_pool import ConnectionPool
+
     from tender_desk.db import DSN
 
     def saver():
-        pool = ConnectionPool(DSN, min_size=1, max_size=3, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True)
-        s = PostgresSaver(pool); s.setup(); return s, pool
+        pool = ConnectionPool(
+            DSN, min_size=1, max_size=3, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True
+        )
+        s = PostgresSaver(pool)
+        s.setup()
+        return s, pool
 
     s1, pool1 = saver()
     tid = client(conn, FakeLLM(SCOPE, [good_choices(conn)]), s1).post("/tenders", json=TENDER).json()["id"]
