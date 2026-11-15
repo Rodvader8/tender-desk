@@ -91,6 +91,17 @@ def create_app(
         d = dict(zip(DELIVERY_COLUMNS.split(", "), r, strict=True))
         return {k: d[k] for k in ("state", "reference", "attempts", "last_error")}
 
+    def run_summary(tid: int):
+        rows = conn.execute(
+            "SELECT step, ms, cost_usd, llm_calls, error FROM run_steps WHERE tender_id=%s ORDER BY id", (tid,)
+        ).fetchall()
+        return {
+            "ms": round(sum(r[1] for r in rows), 1),
+            "cost_usd": round(sum(float(r[2]) for r in rows), 6),
+            "llm_calls": sum(r[3] for r in rows),
+            "steps": [{"step": r[0], "ms": r[1], "cost_usd": float(r[2]), "llm_calls": r[3], "error": r[4]} for r in rows],
+        }
+
     def guarded(tid: int, fn):
         try:
             return fn()
@@ -211,6 +222,7 @@ def create_app(
                 "decided_at": quote[5].isoformat(),
             },
             "delivery": delivery_row(tid),
+            "run": run_summary(tid),
             "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail],
         }
 

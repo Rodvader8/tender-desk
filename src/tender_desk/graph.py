@@ -16,6 +16,8 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import time
+from functools import wraps
 from statistics import mean
 from typing import Any, TypedDict
 
@@ -76,6 +78,34 @@ def audit(conn, tender_id: int | None, event: str, **detail: Any) -> None:
 
 def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, portal=None):
     defenses = defenses if defenses is not None else default_defenses()
+
+    def traced(name: str, fn):
+        """Record the step's time and model spend against its tender (the human wait in `approval` is not a step)."""
+        timed = timed_step(name, fn)
+
+        @wraps(fn)
+        def inner(state: State):
+            guard = getattr(llm, "guard", None)
+            spent0, calls0 = (guard.run_spent, guard.calls) if guard else (0.0, 0)
+            started, error = time.perf_counter(), None
+            try:
+                return timed(state)
+            except Exception as e:
+                error = type(e).__name__
+                raise
+            finally:
+                ms = round((time.perf_counter() - started) * 1000, 1)
+                cost = round(guard.run_spent - spent0, 6) if guard else 0.0
+                n = (guard.calls - calls0) if guard else 0
+                conn.execute(
+                    "INSERT INTO run_steps (tender_id, step, ms, cost_usd, llm_calls, error) VALUES (%s,%s,%s,%s,%s,%s)",
+                    (state["tender_id"], name, ms, cost, n, error),
+                )
+                log.info(
+                    "step", extra={"tender_id": state["tender_id"], "step": name, "ms": ms, "cost_usd": cost, "error": error}
+                )
+
+        return inner
 
     def extract(state: State) -> dict:
         d = defenses
@@ -235,7 +265,7 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
         ("finalize", finalize),
         ("send_quote", send_quote),
     ]:
-        g.add_node(name, timed_step(name, fn))
+        g.add_node(name, fn if name == "approval" else traced(name, fn))
     g.add_edge(START, "extract")
     g.add_edge("extract", "retrieve")
     g.add_edge("retrieve", "estimate")
