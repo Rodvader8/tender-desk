@@ -13,6 +13,7 @@ Design rules:
 
 from __future__ import annotations
 
+import hashlib
 import json
 from statistics import mean
 from typing import Any, TypedDict
@@ -48,6 +49,20 @@ class State(TypedDict, total=False):
     revisions: int
     decision: dict
     outcome: str
+
+
+def draft_digest(draft: dict) -> str:
+    """SHA-256 of the draft's canonical JSON. A decision names the digest it was made on, so it can only ever apply to
+    exactly the draft the person was looking at."""
+    return hashlib.sha256(json.dumps(draft, sort_keys=True, separators=(",", ":"), default=str).encode()).hexdigest()
+
+
+def claim_decision(conn, tender_id: int) -> bool:
+    """Atomically take the one decision a tender is waiting for. The second of two simultaneous reviewers gets False."""
+    row = conn.execute(
+        "UPDATE tenders SET status='deciding' WHERE id=%s AND status='awaiting_approval' RETURNING id", (tender_id,)
+    ).fetchone()
+    return row is not None
 
 
 def audit(conn, tender_id: int | None, event: str, **detail: Any) -> None:
@@ -166,7 +181,12 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
         return {"draft": draft.model_dump()}
 
     def approval(state: State) -> Command:
-        decision = interrupt({"tender_id": state["tender_id"], "draft": state["draft"]})
+        digest = draft_digest(state["draft"])
+        decision = interrupt({"tender_id": state["tender_id"], "draft": state["draft"], "draft_digest": digest})
+        named = decision.get("draft_digest")
+        if named is not None and named != digest:  # made on a different draft: record it, change nothing, ask again
+            audit(conn, state["tender_id"], "decision_refused", reason="draft changed", by=decision.get("by"))
+            return Command(goto="approval")
         audit(conn, state["tender_id"], "decision", **decision)
         if decision["approve"]:
             return Command(goto="finalize", update={"decision": decision, "outcome": "approved"})
@@ -180,8 +200,8 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
     def finalize(state: State) -> dict:
         d, dec = state["draft"], state["decision"]
         conn.execute(
-            "INSERT INTO quotes (tender_id, draft, total, status, decided_by, notes) VALUES (%s,%s,%s,%s,%s,%s)",
-            (state["tender_id"], json.dumps(d), d["total"], state["outcome"], dec["by"], dec.get("notes", "")),
+            "INSERT INTO quotes (tender_id, draft, total, status, decided_by, notes, draft_digest) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+            (state["tender_id"], json.dumps(d), d["total"], state["outcome"], dec["by"], dec.get("notes", ""), draft_digest(d)),
         )
         conn.execute("UPDATE tenders SET status=%s WHERE id=%s", (state["outcome"], state["tender_id"]))
         audit(conn, state["tender_id"], "finalized", outcome=state["outcome"])
@@ -225,5 +245,10 @@ def submit(conn, graph, title: str, text: str, thread_id: str | None = None) -> 
     return tid, config, res
 
 
-def decide(graph, config: dict, approve: bool, by: str, notes: str = "") -> dict:
-    return graph.invoke(Command(resume={"approve": approve, "by": by, "notes": notes}), config)
+def decide(graph, config: dict, approve: bool, by: str, notes: str = "", draft_digest: str | None = None) -> dict:
+    """Resume the run with a person's decision. Pass the digest of the draft they were shown and a decision made on any
+    other draft is refused."""
+    resume: dict[str, Any] = {"approve": approve, "by": by, "notes": notes}
+    if draft_digest is not None:
+        resume["draft_digest"] = draft_digest
+    return graph.invoke(Command(resume=resume), config)

@@ -31,12 +31,14 @@ def test_full_flow_create_review_approve(conn):
     assert tid in [t["id"] for t in c.get("/tenders").json()]
     detail = c.get(f"/tenders/{tid}").json()
     assert detail["draft"] and detail["quote"] is None
-    d = c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod"})
+    ok = {"approve": True, "by": "rod", "draft_digest": r.json()["draft_digest"]}
+    assert detail["draft_digest"] == r.json()["draft_digest"]
+    d = c.post(f"/tenders/{tid}/decision", json=ok)
     assert d.status_code == 200 and d.json()["status"] == "approved"
     after = c.get(f"/tenders/{tid}").json()
     assert after["draft"] is None and after["quote"]["status"] == "approved" and after["quote"]["decided_by"] == "rod"
     assert [a["event"] for a in after["audit"]][-1] == "finalized"
-    assert c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod"}).status_code == 409
+    assert c.post(f"/tenders/{tid}/decision", json=ok).status_code == 409
 
 
 def test_bad_input_and_unknown_tender(conn):
@@ -45,15 +47,19 @@ def test_bad_input_and_unknown_tender(conn):
     assert c.post("/tenders", json={"title": "", "text": "x" * 50}).status_code == 422
     assert c.post("/tenders", json={"title": "TEST big", "text": "x" * 20001}).status_code == 422
     assert c.get("/tenders/999999").status_code == 404
-    assert c.post("/tenders/999999/decision", json={"approve": True, "by": "rod"}).status_code == 404
+    assert c.post("/tenders/999999/decision", json={"approve": True, "by": "rod", "draft_digest": "0" * 64}).status_code == 404
 
 
 def test_reject_with_notes_returns_a_revised_draft_waiting(conn):
     c = client(conn, FakeLLM(SCOPE, [good_choices(conn), good_choices(conn)]))
-    tid = c.post("/tenders", json=TENDER).json()["id"]
-    d = c.post(f"/tenders/{tid}/decision", json={"approve": False, "by": "rod", "notes": "use 32MPa"}).json()
+    first = c.post("/tenders", json=TENDER).json()
+    tid = first["id"]
+    d = c.post(
+        f"/tenders/{tid}/decision",
+        json={"approve": False, "by": "rod", "notes": "use 32MPa", "draft_digest": first["draft_digest"]},
+    ).json()
     assert d["status"] == "awaiting_approval" and d["draft"]
-    final = c.post(f"/tenders/{tid}/decision", json={"approve": False, "by": "rod"}).json()
+    final = c.post(f"/tenders/{tid}/decision", json={"approve": False, "by": "rod", "draft_digest": d["draft_digest"]}).json()
     assert final["status"] == "rejected"
 
 
@@ -111,8 +117,10 @@ def test_paused_quote_survives_a_server_restart(conn):
     s2, pool2 = saver()  # a new process: new pool, new graph, nothing in memory
     c2 = client(conn, FakeLLM(SCOPE, []), s2)
     try:
-        assert c2.get(f"/tenders/{tid}").json()["draft"]["total"] > 0
-        assert c2.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod"}).json()["status"] == "approved"
+        shown = c2.get(f"/tenders/{tid}").json()
+        assert shown["draft"]["total"] > 0
+        body = {"approve": True, "by": "rod", "draft_digest": shown["draft_digest"]}
+        assert c2.post(f"/tenders/{tid}/decision", json=body).json()["status"] == "approved"
     finally:
         thread = f"tender-{tid}"
         for t in ("checkpoint_writes", "checkpoint_blobs", "checkpoints"):
@@ -240,3 +248,55 @@ def test_model_calls_are_recorded_with_cost_and_latency(tmp_path):
     assert (
         REGISTRY.get_sample_value("tender_llm_call_seconds_count", {"model": "metric-test-model", "purpose": "metric-test"}) == 1
     )
+
+
+def different_second_draft(conn):
+    """Same scope, but the second pass leaves line 2 unpriced, so the revised draft really is a different draft."""
+    from test_workflow import pid
+
+    from tender_desk.models import Choice, Choices
+
+    return Choices(
+        choices=[
+            Choice(item_index=0, price_item_id=pid(conn, "Concrete 25MPa ready-mix"), confidence="high", reason="exact"),
+            Choice(item_index=1, price_item_id=None, confidence="low", reason="no match"),
+        ]
+    )
+
+
+def test_a_stale_screen_cannot_approve_a_revised_draft(conn):
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn), different_second_draft(conn)]))
+    first = c.post("/tenders", json=TENDER).json()
+    tid = first["id"]
+    revised = c.post(
+        f"/tenders/{tid}/decision",
+        json={"approve": False, "by": "rod", "notes": "use 32MPa", "draft_digest": first["draft_digest"]},
+    ).json()
+    assert revised["draft_digest"] != first["draft_digest"]
+    # a second reviewer is still looking at the first draft and clicks approve
+    r = c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "kim", "draft_digest": first["draft_digest"]})
+    assert r.status_code == 409 and "changed" in r.json()["detail"]
+    assert c.get(f"/tenders/{tid}").json()["status"] == "awaiting_approval"
+    assert conn.execute("SELECT count(*) FROM quotes WHERE tender_id=%s", (tid,)).fetchone()[0] == 0
+    ok = c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "kim", "draft_digest": revised["draft_digest"]})
+    assert ok.status_code == 200 and ok.json()["status"] == "approved"
+
+
+def test_a_decision_without_the_draft_digest_is_refused(conn):
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    tid = c.post("/tenders", json=TENDER).json()["id"]
+    assert c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod"}).status_code == 422
+    assert c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod", "draft_digest": "short"}).status_code == 422
+
+
+def test_only_one_decision_can_claim_a_tender(conn):
+    from tender_desk.graph import claim_decision
+
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    first = c.post("/tenders", json=TENDER).json()
+    tid = first["id"]
+    assert claim_decision(conn, tid) is True
+    assert claim_decision(conn, tid) is False  # the second reviewer loses the race
+    body = {"approve": True, "by": "kim", "draft_digest": first["draft_digest"]}
+    r = c.post(f"/tenders/{tid}/decision", json=body)
+    assert r.status_code == 409 and "deciding" in r.json()["detail"]

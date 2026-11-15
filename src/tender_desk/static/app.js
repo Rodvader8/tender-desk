@@ -104,7 +104,7 @@ function draftView(d) {
     el("ul", {}, ...d.comparables.map((c) => el("li", { text: c.title + ": margin " + c.margin_pct + "%, total " + money(c.total) }))));
 }
 
-function decisionForm(tid) {
+function decisionForm(tid, digest) {
   const by = el("input", { id: "d-by", maxlength: "80", autocomplete: "name" });
   try { by.value = localStorage.getItem("reviewer") || ""; } catch (_) {}
   const notes = el("textarea", { id: "d-notes", class: "short", maxlength: "2000", placeholder: "Optional. If you reject with notes, the draft is revised once using them." });
@@ -112,7 +112,7 @@ function decisionForm(tid) {
     if (!by.value.trim()) return say("Enter your name so the decision is on the record.");
     try { localStorage.setItem("reviewer", by.value.trim()); } catch (_) {}
     btns.forEach((b) => (b.disabled = true)); say(approve ? "Saving the approved quote." : "Recording your decision.");
-    try { await api("/tenders/" + tid + "/decision", { method: "POST", body: JSON.stringify({ approve, by: by.value.trim(), notes: notes.value }) }); await refreshList(); openTender(tid); }
+    try { await api("/tenders/" + tid + "/decision", { method: "POST", body: JSON.stringify({ approve, by: by.value.trim(), notes: notes.value, draft_digest: digest }) }); await refreshList(); openTender(tid); }
     catch (e) { say(e.message); btns.forEach((b) => (b.disabled = false)); }
   };
   const ok = el("button", { class: "btn good", type: "button", onclick: () => send(true) }, "Approve and save quote");
@@ -128,7 +128,7 @@ async function openTender(id) {
   let t; try { t = await api("/tenders/" + id); } catch (e) { return say(e.message); }
   const main = $("main");
   main.replaceChildren(el("h2", { text: t.title }), el("div", { class: "t-meta" }, badge(t.status), new Date(t.created_at).toLocaleString("en-AU")));
-  if (t.draft) main.append(draftView(t.draft), decisionForm(id));
+  if (t.draft) main.append(draftView(t.draft), decisionForm(id, t.draft_digest));
   else if (t.quote) {
     main.append(el("div", { class: "callout " + (t.quote.status === "approved" ? "ok" : "bad"), text: "Quote " + t.quote.status + " by " + t.quote.decided_by + (t.quote.notes ? ". Notes: " + t.quote.notes : "") }), draftView(t.quote.draft));
   } else main.append(el("div", { class: "callout bad", text: "This tender did not finish. See the audit trail below." }));

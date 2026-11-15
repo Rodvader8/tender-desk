@@ -22,10 +22,10 @@ def scratch_dsn():
 
 def test_applies_everything_once_and_is_idempotent(scratch_dsn, capsys):
     first = migrate.run(scratch_dsn)
-    assert first == ["001_schema.sql", "002_readonly_role.sql", "003_indexes.sql"]
+    assert first == sorted(p.name for p in migrate.MIGRATIONS.glob("*.sql"))  # every file, in order
     assert migrate.run(scratch_dsn) == []  # second run does nothing
     with psycopg.connect(scratch_dsn) as c:
-        assert c.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 3
+        assert c.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == len(first)
         assert c.execute("SELECT to_regclass('public.audit_log_tender_id_idx') IS NOT NULL").fetchone()[0]
 
 
@@ -33,7 +33,9 @@ def test_adopts_a_database_that_predates_the_runner(scratch_dsn, capsys):
     with psycopg.connect(scratch_dsn, autocommit=True) as c:  # as the old docker-entrypoint did: raw files, no record
         c.execute((migrate.MIGRATIONS / "001_schema.sql").read_text())
         c.execute((migrate.MIGRATIONS / "002_readonly_role.sql").read_text())
-    assert migrate.run(scratch_dsn) == ["003_indexes.sql"]  # 001 and 002 were adopted, not re-run (re-running 001 would fail)
+    assert (
+        migrate.run(scratch_dsn) == sorted(p.name for p in migrate.MIGRATIONS.glob("*.sql"))[2:]
+    )  # 001 and 002 were adopted, not re-run (re-running 001 would fail)
     assert "adopted an existing database" in capsys.readouterr().out
 
 

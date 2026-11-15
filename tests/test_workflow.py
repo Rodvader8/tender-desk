@@ -243,3 +243,24 @@ def test_default_defences_flag_a_quantity_that_is_not_in_the_tender(conn):
     )
     _, _, _, res = run(conn, FakeLLM(scope, [ch]))
     assert any("500 does not appear in the tender text" in f for f in res["__interrupt__"][0].value["draft"]["flags"])
+
+
+def test_draft_digest_is_stable_and_sensitive(conn):
+    _, _, _, res = run(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    shown = res["__interrupt__"][0].value
+    draft = shown["draft"]
+    assert shown["draft_digest"] == G.draft_digest(draft)
+    assert G.draft_digest(dict(reversed(list(draft.items())))) == G.draft_digest(draft)  # key order does not matter
+    assert G.draft_digest({**draft, "total": draft["total"] + 0.01}) != G.draft_digest(draft)  # one cent does
+
+
+def test_a_decision_on_a_different_draft_is_refused_and_the_run_asks_again(conn):
+    g, tid, cfg, res = run(conn, FakeLLM(SCOPE, [good_choices(conn)]))
+    shown = res["__interrupt__"][0].value["draft_digest"]
+    out = decide(g, cfg, approve=True, by="rod", draft_digest="0" * 64)
+    assert "__interrupt__" in out  # still waiting for a person
+    assert conn.execute("SELECT count(*) FROM quotes WHERE tender_id=%s", (tid,)).fetchone()[0] == 0
+    events = [r[0] for r in conn.execute("SELECT event FROM audit_log WHERE tender_id=%s ORDER BY id", (tid,)).fetchall()]
+    assert "decision_refused" in events and "finalized" not in events
+    decide(g, cfg, approve=True, by="rod", draft_digest=shown)
+    assert conn.execute("SELECT status, draft_digest FROM quotes WHERE tender_id=%s", (tid,)).fetchone() == ("approved", shown)

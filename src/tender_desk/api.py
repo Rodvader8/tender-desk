@@ -24,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
-from .graph import audit, build_graph, create_tender, decide, start
+from .graph import audit, build_graph, claim_decision, create_tender, decide, draft_digest, start
 from .llm import LLM, BudgetExceeded
 from .observability import HTTP_REQUESTS, HTTP_SECONDS, REGISTRY, TENDERS, configure_logging
 from .security import RateLimiter, make_auth
@@ -43,6 +43,7 @@ class DecisionIn(BaseModel):
     approve: bool
     by: str = Field(min_length=1, max_length=80)
     notes: str = Field("", max_length=2000)
+    draft_digest: str = Field(min_length=64, max_length=64, description="digest of the draft the reviewer was shown")
 
 
 def create_app(
@@ -69,6 +70,10 @@ def create_app(
             for intr in task.interrupts:
                 return intr.value["draft"]
         return None
+
+    def shown(res) -> dict:
+        v = res["__interrupt__"][0].value
+        return {"draft": v["draft"], "draft_digest": v["draft_digest"]}
 
     def tender_row(tid: int):
         r = conn.execute("SELECT id, title, status, created_at FROM tenders WHERE id=%s", (tid,)).fetchone()
@@ -169,7 +174,7 @@ def create_app(
         tid = create_tender(conn, body.title, body.text)
         TENDERS.labels("created").inc()
         _, res = guarded(tid, lambda: start(graph(), tid, body.text))
-        return {**tender_row(tid), "draft": res["__interrupt__"][0].value["draft"]}
+        return {**tender_row(tid), **shown(res)}
 
     @app.get("/tenders/{tid}", dependencies=[auth])
     def get_tender(tid: int):
@@ -180,9 +185,11 @@ def create_app(
             (tid,),
         ).fetchone()
         trail = conn.execute("SELECT at, event, detail FROM audit_log WHERE tender_id=%s ORDER BY id", (tid,)).fetchall()
+        draft = pending_draft(graph(), cfg) if t["status"] == "awaiting_approval" else None
         return {
             **t,
-            "draft": pending_draft(graph(), cfg) if t["status"] == "awaiting_approval" else None,
+            "draft": draft,
+            "draft_digest": draft_digest(draft) if draft else None,
             "quote": None
             if not quote
             else {
@@ -202,12 +209,19 @@ def create_app(
         if t["status"] != "awaiting_approval":
             raise HTTPException(409, f"This tender is {t['status']}, not awaiting approval")
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
-        res = guarded(tid, lambda: decide(graph(), cfg, body.approve, body.by.strip(), body.notes.strip()))
+        current = pending_draft(graph(), cfg)
+        if current is None or body.draft_digest != draft_digest(current):
+            raise HTTPException(409, "The draft changed since you opened it. Reload the tender and read it again.")
+        if not claim_decision(conn, tid):
+            raise HTTPException(409, f"This tender is {tender_row(tid)['status']}, not awaiting approval")
+        res = guarded(
+            tid, lambda: decide(graph(), cfg, body.approve, body.by.strip(), body.notes.strip(), draft_digest=body.draft_digest)
+        )
         TENDERS.labels("approved" if body.approve else "rejected").inc()
         log.info("tender_decision", extra={"tender_id": tid, "approved": body.approve})
         out = tender_row(tid)
         if "__interrupt__" in res:  # rejected with notes: a revised draft is waiting
-            out["draft"] = res["__interrupt__"][0].value["draft"]
+            out.update(shown(res))
         return out
 
     return app
