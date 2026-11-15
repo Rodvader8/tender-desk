@@ -13,9 +13,10 @@ flowchart LR
     R --> S[estimate<br/>LLM picks from candidates]
     S --> B[build draft<br/>code: checks + all arithmetic]
     B --> A{{approval<br/>human, checkpointed}}
-    A -- approve --> F[save quote + audit log]
+    A -- approve, bound to the draft's digest --> F[save quote + audit log]
     A -- reject with notes --> S
     A -- reject --> F
+    F -- approved only --> P[send quote to the portal<br/>idempotent, readback before any retry]
 ```
 
 Design rules, each enforced in code and covered by a test:
@@ -24,6 +25,8 @@ Design rules, each enforced in code and covered by a test:
 - **The model can't invent a price item.** A choice that wasn't offered is rejected and flagged.
 - **Flags a reviewer can trust.** Unit mismatches (after normalising `m²`/`m2`, `lin m`/`m`, `lump sum`/`each`), no match, low confidence and below-policy margin are all flagged on the draft.
 - **Nothing is saved until a person decides.** LangGraph `interrupt()` pauses the run and the state is checkpointed. Every step writes to an audit log.
+- **An approval applies to exactly one draft.** The draft is hashed (SHA-256 of its canonical JSON) and a decision must name that digest. If the tender was revised since the reviewer opened it, the decision is refused with a 409; if it reaches the graph anyway, the graph refuses and asks again. Taking the decision is an atomic status claim, so two reviewers clicking at once cannot both finalise. The approved digest is stored on the quote.
+- **Sending is safe to repeat and honest about what it doesn't know.** See "Sending the approved quote" below.
 - **Tender text is treated as untrusted**: delimited in the prompt, quantities and instruction-like phrases checked in code, and attacked with 36 injection tests (see the prompt-injection section).
 - **Hard spend limits.** The OpenRouter client refuses to call the API past a per-run cap, a project cap, or when the account balance would drop below a floor. `uv run spend` shows the live numbers.
 
@@ -46,7 +49,7 @@ Open http://127.0.0.1:8000 and enter the token.
 docker compose up -d db && uv sync
 uv run tender-migrate                      # applies src/tender_desk/migrations in order, once each
 uv run python scripts/seed.py
-uv run pytest                              # 69 tests, no API cost, no key needed
+uv run pytest                              # 101 tests, no API cost, no key needed
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run python scripts/demo.py examples/tender_rear_extension.txt   # live run, about $0.0005
 uv run spend                               # balance, project spend
@@ -58,7 +61,9 @@ The model key is read from `OPENROUTER_API_KEY` or `~/.config/openrouter/key`. M
 
 | setting (environment variable) | meaning |
 |---|---|
-| `TENDER_DESK_API_TOKEN` | required: the bearer token for every `/tenders` route and `/metrics`. The server refuses to start without it unless `TENDER_DESK_ALLOW_NO_AUTH=1` (local development) |
+| `TENDER_DESK_API_TOKEN` | the bearer token for every `/tenders` route and `/metrics` (one company, called `default`). The server refuses to start without a token unless `TENDER_DESK_ALLOW_NO_AUTH=1` (local development) |
+| `TENDER_DESK_TENANT_TOKENS` | instead of the above, several companies on one deployment: `acme=<token>,bolt=<token>`. Each token (16 characters or more) belongs to one tenant, which sees only its own tenders |
+| `TENDER_DESK_PORTAL_URL` | where approved quotes are sent, for example `http://127.0.0.1:8100` (`uv run tender-portal` runs the stand-in). If unset, approving saves the quote and sends nothing |
 | `TENDER_DESK_DB`, `TENDER_DESK_RO_DB` | database for the app and migrations, and the read-only role the MCP server uses |
 | `TENDER_DESK_RO_PASSWORD` | sets the read-only role's password when migrating (the development default is `tender_ro`) |
 | `TENDER_DESK_MAX_TENDERS_PER_MIN` | limit on creating tenders (default 10), because each one spends money |
@@ -66,13 +71,13 @@ The model key is read from `OPENROUTER_API_KEY` or `~/.config/openrouter/key`. M
 | `TENDER_DESK_DEFENSES` | `D0`, `D1` or `D2` (default), the prompt-injection defences |
 | `TENDER_DESK_LOG_LEVEL` | default `INFO` |
 
-- **Auth.** One shared bearer token, compared in constant time. There are no user accounts, so the reviewer name on a decision is typed in, not authenticated. Do not expose this to the internet without putting real authentication in front of it.
+- **Auth.** Bearer tokens, compared in constant time, each belonging to one tenant. There are no user accounts, so the reviewer name on a decision is typed in, not authenticated. Do not expose this to the internet without putting real authentication in front of it.
 - **Migrations.** `tender-migrate` applies the SQL files once each, under a lock, and records them in `schema_migrations`. A database created before the runner existed is adopted without re-running anything. A failing migration rolls back completely.
 - **Logs.** One JSON line per request: method, route template, status, milliseconds and a request ID (an incoming `X-Request-ID` is echoed only if it is plain, so it cannot forge log lines). Logs never contain the token, an API key, tender text or model output, and a test enforces that.
-- **Metrics.** `GET /metrics` (Prometheus format, needs the token): requests and latency by route, model calls, tokens, **cost in dollars and latency by model and purpose**, workflow step durations, and tender events (created, approved, rejected, stopped, failed).
+- **Metrics.** `GET /metrics` (Prometheus format, needs the token): requests and latency by route, model calls, tokens, **cost in dollars and latency by model and purpose**, workflow step durations, and tender events (created, approved, rejected, stopped, failed). Per tender, every step that ran is also recorded in `run_steps` with its time and model spend and returned as `run` on `GET /tenders/{id}` (revisions show up as extra rows; a failing step records its exception type only). Step log lines carry the tender id.
 - **Container.** Multi-stage image, runs as a non-root user, the embedding model is baked in so nothing downloads at start-up, health check on `/health`, ports bound to 127.0.0.1.
 - **CI** (`.github/workflows/ci.yml`): lint, format check, types, migrations, seed, the full test suite against a real pgvector Postgres with no API key, a dependency audit, and an image build that checks it runs as non-root. Actions are pinned to commit hashes and Dependabot watches them, the Python dependencies and the base image. I ran the same steps from a fresh clone against an empty database, which found one test that had only passed on my development data. GitHub itself has not run the workflow yet.
-- **Not done:** a cloud deployment (Terraform on Azure or GCP), user accounts, secrets management beyond environment variables, load testing.
+- **Not done:** a cloud deployment (Terraform on Azure or GCP), user accounts (the reviewer is still typed in), secrets management beyond environment variables, load testing, a background worker that reconciles unknown deliveries on its own (today it is one endpoint call).
 
 ## API and approval screen
 
@@ -86,13 +91,38 @@ Open http://127.0.0.1:8765. Paste or load a tender, the model drafts a priced qu
 |---|---|
 | `POST /tenders` | create a tender and run it until it needs a person |
 | `GET /tenders`, `GET /tenders/{id}` | list, or one tender with its pending draft or final quote and audit trail |
-| `POST /tenders/{id}/decision` | approve or reject (409 if it is not awaiting approval) |
+| `POST /tenders/{id}/decision` | approve or reject. The body must carry `draft_digest`, the digest of the draft the reviewer was shown (409 if the draft has changed or the tender is not awaiting approval) |
+| `POST /tenders/{id}/delivery/reconcile` | settle a delivery whose outcome is unknown by reading back what the portal holds. Never resends blind |
+
+`GET /tenders/{id}` also returns `draft_digest`, `delivery` (state, reference, attempts, last error) and `run` (time, cost, model calls, and each step).
 
 - **Paused quotes survive a restart.** Workflow state is checkpointed in Postgres. A test starts a tender on one server, discards it, and approves it from a second server with a new connection pool and nothing in memory.
 - **Spend limits apply per request.** A tender that hits the cap returns 503 and is marked `stopped_by_spend_limit`. Unexpected errors return a generic 500 and never expose exception text or keys.
 - **The screen treats everything as untrusted text.** Tender text and model output are written with `textContent`, never HTML. A strict Content-Security-Policy is set, there are no inline styles or scripts, and a test fails if `innerHTML`, `eval` or `document.write` appears in the page code.
-- **Authenticated, not multi-user.** Every `/tenders` route needs the bearer token and tender creation is rate limited (see Operating it). The reviewer name is typed in, not authenticated.
+- **Authenticated, tenant-scoped, not multi-user.** Every `/tenders` route needs a bearer token and tender creation is rate limited per tenant (see Operating it). With `TENDER_DESK_TENANT_TOKENS`, a tenant's token reaches only that tenant's tenders: another tenant's id answers 404, exactly like an unknown one, and a test calls every `/tenders/{id}` route as the wrong tenant so a future route that forgets the check fails it. The reviewer name is typed in, not authenticated.
 - Checked in a browser at desktop and phone width (the table scrolls inside its own box, the page does not).
+
+## Sending the approved quote
+
+After approval the quote goes to an outside system (a client or supplier portal; `src/tender_desk/portal.py` is a stand-in written for this repo, in memory). The case this is built around: the request is applied on the other side and the answer is lost. From here that looks exactly like a request that never arrived, and resending blindly can book twice.
+
+| what happened | what the sender does | state |
+|---|---|---|
+| answer received, matches what was approved | record the portal's reference | `sent` |
+| timeout, dropped connection or 5xx | **ask the portal what it holds for this key before doing anything else** | decided by the readback |
+| ...readback shows our quote | record the portal's reference, send nothing more | `sent` |
+| ...readback shows nothing | safe to send again (same idempotency key), up to 3 attempts | `sent`, or `failed` |
+| ...readback shows a different total or draft | stop, a person looks | `conflict` |
+| ...the readback also fails | do not resend, do not call it sent | `unknown`, settled later by `reconcile` |
+| the portal clearly refuses (4xx) | no retry | `failed` |
+
+One delivery row per quote, one idempotency key per delivery, and the portal treats a repeated key with the same content as the same request (a repeated key with different content is refused). The attempt is written before the request goes out, so a crash leaves a trace that `reconcile` can settle. A delivery that ends `unknown` or `failed` never un-approves the quote.
+
+Evidence: 14 tests. Thirteen run against the in-process portal, most with faults injected at the HTTP layer (lost before it arrives, lost after the portal applied it, 503 after it applied it, readback lost too, crash between sending and recording) and one uses a **real timeout over a real socket** (a portal that applies the first request and stalls past the client's timeout). Deleting the readback step makes six of them fail, which is how I checked the tests can fail.
+
+What this doesn't cover: the portal is mine, so real suppliers' idempotency behaviour (some have none) is not shown; delivery runs inside the decision request, so a slow portal can hold it for several timeouts (about 30 seconds at worst); `reconcile` is one endpoint, not a scheduled job; and the approval screen shows delivery state but cannot trigger a reconcile.
+
+**Tenants.** Tenders, and through them quotes, deliveries, run steps and the audit log, belong to one tenant. The scoping is in the application, not Postgres row-level security, because the API shares one database connection across requests and a per-session tenant setting would race. The price list and the past jobs used for margins are shared by every tenant in this demo, and the MCP server's `list_tenders` is not tenant-scoped (it runs locally for one operator); in a real deployment both would be per tenant.
 
 ## MCP server and agent client
 
@@ -280,9 +310,9 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 69 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models.
+Working: the full workflow, the API and approval screen, the evaluation harness, 101 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models. Since those live runs the following were added and tested only with the scripted fake and the stand-in portal, not live against a model: approval bound to the draft, delivery with readback and reconcile, per-tender run trace, tenant isolation.
 
-Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, observability (per-step cost and latency), and a React front end. 
+Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, a scheduled reconcile, and a React front end. 
 
 **Observed while building the screen:** the model sometimes merges two tender items into one line (it merged concrete and mesh in one live run and split them in the next). The workflow flags the merged line as unpriced rather than guessing, but extraction is not deterministic and is not yet evaluated.
 

@@ -131,7 +131,14 @@ async function openTender(id) {
   if (t.draft) main.append(draftView(t.draft), decisionForm(id, t.draft_digest));
   else if (t.quote) {
     main.append(el("div", { class: "callout " + (t.quote.status === "approved" ? "ok" : "bad"), text: "Quote " + t.quote.status + " by " + t.quote.decided_by + (t.quote.notes ? ". Notes: " + t.quote.notes : "") }), draftView(t.quote.draft));
+    if (t.delivery) {
+      const d = t.delivery, bad = d.state === "conflict" || d.state === "failed";
+      const words = { sent: "Sent to the portal, reference " + d.reference, unknown: "Sent, but the portal's answer was lost and it could not be checked. Nothing has been resent.",
+        conflict: "The portal holds something different from what was approved. Check it before anything else.", failed: "Not delivered: " + d.last_error, pending: "Sending." };
+      main.append(el("div", { class: "callout " + (d.state === "sent" ? "ok" : bad ? "bad" : "") , text: words[d.state] || d.state }));
+    }
   } else main.append(el("div", { class: "callout bad", text: "This tender did not finish. See the audit trail below." }));
+  if (t.run && t.run.steps.length) main.append(el("p", { class: "hint", text: "This run: " + t.run.llm_calls + " model calls, $" + t.run.cost_usd.toFixed(4) + ", " + (t.run.ms / 1000).toFixed(1) + " s of working time." }));
   main.append(el("details", {}, el("summary", { text: "Audit trail (" + t.audit.length + ")" }),
     el("ul", { class: "audit" }, ...t.audit.map((a) => el("li", { text: new Date(a.at).toLocaleTimeString("en-AU") + "  " + a.event + "  " + JSON.stringify(a.detail) })))));
   main.focus();
