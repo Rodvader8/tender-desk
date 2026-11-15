@@ -24,6 +24,8 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
+from .delivery import COLUMNS as DELIVERY_COLUMNS
+from .delivery import reconcile
 from .graph import audit, build_graph, claim_decision, create_tender, decide, draft_digest, start
 from .llm import LLM, BudgetExceeded
 from .observability import HTTP_REQUESTS, HTTP_SECONDS, REGISTRY, TENDERS, configure_logging
@@ -54,6 +56,7 @@ def create_app(
     api_token: str | None,
     allow_no_auth: bool = False,
     max_tenders_per_minute: int = 10,
+    portal=None,
 ) -> FastAPI:
     if api_token is None and not allow_no_auth:
         raise ValueError("api_token is required (pass allow_no_auth=True only for local development)")
@@ -63,7 +66,7 @@ def create_app(
 
     def graph():
         # a fresh LLM per request, so each tender gets its own per-run spend cap
-        return build_graph(llm_factory(), conn, checkpointer)
+        return build_graph(llm_factory(), conn, checkpointer, portal=portal)
 
     def pending_draft(g, cfg):
         for task in g.get_state(cfg).tasks:
@@ -80,6 +83,13 @@ def create_app(
         if not r:
             raise HTTPException(404, "No such tender")
         return {"id": r[0], "title": r[1], "status": r[2], "created_at": r[3].isoformat()}
+
+    def delivery_row(tid: int):
+        r = conn.execute(f"SELECT {DELIVERY_COLUMNS} FROM deliveries WHERE tender_id=%s", (tid,)).fetchone()  # noqa: S608 constant list
+        if r is None:
+            return None
+        d = dict(zip(DELIVERY_COLUMNS.split(", "), r, strict=True))
+        return {k: d[k] for k in ("state", "reference", "attempts", "last_error")}
 
     def guarded(tid: int, fn):
         try:
@@ -200,8 +210,24 @@ def create_app(
                 "notes": quote[4],
                 "decided_at": quote[5].isoformat(),
             },
+            "delivery": delivery_row(tid),
             "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail],
         }
+
+    @app.post("/tenders/{tid}/delivery/reconcile", dependencies=[auth])
+    def reconcile_delivery(tid: int):
+        """Settle a delivery whose outcome is unknown by reading back what the outside system holds. Never resends blind."""
+        tender_row(tid)
+        if portal is None:
+            raise HTTPException(503, "No quote portal is configured (TENDER_DESK_PORTAL_URL)")
+        q = conn.execute(
+            "SELECT id FROM quotes WHERE tender_id=%s AND status='approved' ORDER BY id DESC LIMIT 1", (tid,)
+        ).fetchone()
+        if q is None:
+            raise HTTPException(404, "This tender has no approved quote to deliver")
+        out = reconcile(conn, portal, q[0])
+        log.info("delivery_reconciled", extra={"tender_id": tid, "state": out["state"]})
+        return {k: out[k] for k in ("state", "reference", "attempts", "last_error")}
 
     @app.post("/tenders/{tid}/decision", dependencies=[auth])
     def decision(tid: int, body: DecisionIn):
@@ -245,6 +271,14 @@ def build_default_app() -> FastAPI:
             "Set TENDER_DESK_API_TOKEN (any long random string). For local development only: TENDER_DESK_ALLOW_NO_AUTH=1."
         )
 
+    portal = None
+    if url := os.environ.get("TENDER_DESK_PORTAL_URL"):
+        import httpx
+
+        from .delivery import PortalClient
+
+        portal = PortalClient(httpx.Client(timeout=5.0), base_url=url)
+
     pool: ConnectionPool[Connection[dict[str, Any]]] = ConnectionPool(
         DSN, min_size=1, max_size=5, kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row}, open=True
     )
@@ -257,4 +291,5 @@ def build_default_app() -> FastAPI:
         api_token=token,
         allow_no_auth=allow_no_auth,
         max_tenders_per_minute=int(os.environ.get("TENDER_DESK_MAX_TENDERS_PER_MIN", "10")),
+        portal=portal,
     )

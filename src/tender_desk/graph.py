@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from statistics import mean
 from typing import Any, TypedDict
 
@@ -29,6 +30,7 @@ from .search import comparable_jobs, price_candidates
 from .specs import spec_conflicts
 from .units import units_compatible
 
+log = logging.getLogger("tender_desk.graph")
 MIN_MARGIN = 12.0  # policy floor, percent
 MAX_REVISIONS = 2
 UNTRUSTED = (
@@ -49,6 +51,7 @@ class State(TypedDict, total=False):
     revisions: int
     decision: dict
     outcome: str
+    quote_id: int
 
 
 def draft_digest(draft: dict) -> str:
@@ -71,7 +74,7 @@ def audit(conn, tender_id: int | None, event: str, **detail: Any) -> None:
     )
 
 
-def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
+def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, portal=None):
     defenses = defenses if defenses is not None else default_defenses()
 
     def extract(state: State) -> dict:
@@ -199,12 +202,27 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
 
     def finalize(state: State) -> dict:
         d, dec = state["draft"], state["decision"]
-        conn.execute(
-            "INSERT INTO quotes (tender_id, draft, total, status, decided_by, notes, draft_digest) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+        quote_id = conn.execute(
+            "INSERT INTO quotes (tender_id, draft, total, status, decided_by, notes, draft_digest) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id",
             (state["tender_id"], json.dumps(d), d["total"], state["outcome"], dec["by"], dec.get("notes", ""), draft_digest(d)),
-        )
+        ).fetchone()[0]
         conn.execute("UPDATE tenders SET status=%s WHERE id=%s", (state["outcome"], state["tender_id"]))
         audit(conn, state["tender_id"], "finalized", outcome=state["outcome"])
+        return {"quote_id": quote_id}
+
+    def send_quote(state: State) -> dict:
+        """Hand an approved quote to the outside system. Whatever happens, the approval stands: a delivery that ends
+        unknown or failed is recorded on its own row and settled by reconcile, it never un-approves the quote."""
+        if portal is None or state["outcome"] != "approved":
+            return {}
+        from .delivery import deliver  # imported here: delivery imports this module
+
+        try:
+            deliver(conn, portal, state["quote_id"])
+        except Exception as e:  # a database or programming fault; the quote is already saved
+            audit(conn, state["tender_id"], "delivery_error", type=type(e).__name__)
+            log.error("delivery_error", extra={"tender_id": state["tender_id"], "error_type": type(e).__name__})
         return {}
 
     g = StateGraph(State)
@@ -215,6 +233,7 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
         ("build_draft", build_draft),
         ("approval", approval),
         ("finalize", finalize),
+        ("send_quote", send_quote),
     ]:
         g.add_node(name, timed_step(name, fn))
     g.add_edge(START, "extract")
@@ -222,7 +241,8 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None):
     g.add_edge("retrieve", "estimate")
     g.add_edge("estimate", "build_draft")
     g.add_edge("build_draft", "approval")
-    g.add_edge("finalize", END)
+    g.add_edge("finalize", "send_quote")
+    g.add_edge("send_quote", END)
     return g.compile(checkpointer=checkpointer)
 
 

@@ -300,3 +300,41 @@ def test_only_one_decision_can_claim_a_tender(conn):
     body = {"approve": True, "by": "kim", "draft_digest": first["draft_digest"]}
     r = c.post(f"/tenders/{tid}/decision", json=body)
     assert r.status_code == 409 and "deciding" in r.json()["detail"]
+
+
+def test_the_tender_shows_its_delivery_and_reconcile_settles_an_unknown_one(conn):
+    from test_delivery import Flaky
+
+    from tender_desk.delivery import PortalClient
+    from tender_desk.portal import Portal, create_portal_app
+
+    portal = Portal()
+    flaky = Flaky(TestClient(create_portal_app(portal), base_url="http://portal.test"), ["timeout_after", "timeout_before"])
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]), portal=PortalClient(flaky, base_url="http://portal.test"))
+    first = c.post("/tenders", json=TENDER).json()
+    tid = first["id"]
+    assert c.get(f"/tenders/{tid}").json()["delivery"] is None  # nothing sent while it waits for a person
+    r = c.post(f"/tenders/{tid}/decision", json={"approve": True, "by": "rod", "draft_digest": first["draft_digest"]})
+    assert r.status_code == 200 and r.json()["status"] == "approved"  # a lost answer does not undo the approval
+    shown = c.get(f"/tenders/{tid}").json()["delivery"]
+    assert shown["state"] == "unknown" and shown["reference"] is None
+    settled = c.post(f"/tenders/{tid}/delivery/reconcile")
+    assert settled.status_code == 200 and settled.json()["state"] == "sent" and settled.json()["reference"].startswith("PRT-")
+    assert len(portal.subs) == 1 and len(flaky.submits()) == 1  # read back, never resent
+    assert c.get(f"/tenders/{tid}").json()["delivery"]["state"] == "sent"
+
+
+def test_reconcile_needs_a_portal_and_an_approved_quote(conn):
+    from tender_desk.delivery import PortalClient
+    from tender_desk.portal import create_portal_app
+
+    c = client(conn, FakeLLM(SCOPE, [good_choices(conn)]))  # no portal configured
+    first = c.post("/tenders", json=TENDER).json()
+    assert c.post(f"/tenders/{first['id']}/delivery/reconcile").status_code == 503
+    with_portal = client(
+        conn,
+        FakeLLM(SCOPE, []),
+        portal=PortalClient(TestClient(create_portal_app(), base_url="http://portal.test"), base_url="http://portal.test"),
+    )
+    assert with_portal.post(f"/tenders/{first['id']}/delivery/reconcile").status_code == 404  # not approved yet
+    assert with_portal.post("/tenders/999999/delivery/reconcile").status_code == 404

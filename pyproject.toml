@@ -29,6 +29,7 @@ dependencies = [
 spend = "tender_desk.spend:main"
 tender-mcp = "tender_desk.mcp_server:main"
 tender-migrate = "tender_desk.migrate:main"
+tender-portal = "tender_desk.portal:main"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
