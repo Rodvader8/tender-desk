@@ -276,8 +276,10 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
     return g.compile(checkpointer=checkpointer)
 
 
-def create_tender(conn, title: str, text: str) -> int:
-    tid = conn.execute("INSERT INTO tenders (title, raw_text) VALUES (%s,%s) RETURNING id", (title, text)).fetchone()[0]
+def create_tender(conn, title: str, text: str, tenant: str = "default") -> int:
+    tid = conn.execute(
+        "INSERT INTO tenders (title, raw_text, tenant) VALUES (%s,%s,%s) RETURNING id", (title, text, tenant)
+    ).fetchone()[0]
     audit(conn, tid, "tender_received", title=title)
     return tid
 

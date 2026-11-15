@@ -29,7 +29,7 @@ from .delivery import reconcile
 from .graph import audit, build_graph, claim_decision, create_tender, decide, draft_digest, start
 from .llm import LLM, BudgetExceeded
 from .observability import HTTP_REQUESTS, HTTP_SECONDS, REGISTRY, TENDERS, configure_logging
-from .security import RateLimiter, make_auth
+from .security import RateLimiter, make_tenant_auth
 
 STATIC = Path(__file__).parent / "static"
 log = logging.getLogger("tender_desk.api")
@@ -57,12 +57,25 @@ def create_app(
     allow_no_auth: bool = False,
     max_tenders_per_minute: int = 10,
     portal=None,
+    tenant_tokens: dict[str, str] | None = None,
 ) -> FastAPI:
-    if api_token is None and not allow_no_auth:
-        raise ValueError("api_token is required (pass allow_no_auth=True only for local development)")
+    if tenant_tokens is not None:
+        if api_token is not None:
+            raise ValueError("use api_token or tenant_tokens, not both")
+        if not tenant_tokens:
+            raise ValueError("tenant_tokens needs at least one tenant")
+        if any(len(t) < 16 for t in tenant_tokens):
+            raise ValueError("every tenant token must be at least 16 characters")
+        tokens: dict[str, str] | None = tenant_tokens
+    elif api_token is None:
+        if not allow_no_auth:
+            raise ValueError("api_token is required (pass allow_no_auth=True only for local development)")
+        tokens = None
+    else:
+        tokens = {api_token: "default"}
     app = FastAPI(title="Tender Desk", version="0.1.0")
-    auth = Depends(make_auth(api_token))
-    limiter = RateLimiter(max_tenders_per_minute)
+    auth = Depends(make_tenant_auth(tokens))  # resolves to the caller's tenant
+    limiters: dict[str, RateLimiter] = {}  # one allowance per tenant, so one company cannot use up another's
 
     def graph():
         # a fresh LLM per request, so each tender gets its own per-run spend cap
@@ -78,8 +91,9 @@ def create_app(
         v = res["__interrupt__"][0].value
         return {"draft": v["draft"], "draft_digest": v["draft_digest"]}
 
-    def tender_row(tid: int):
-        r = conn.execute("SELECT id, title, status, created_at FROM tenders WHERE id=%s", (tid,)).fetchone()
+    def tender_row(tid: int, tenant: str):
+        # another tenant's id answers exactly like an id that does not exist
+        r = conn.execute("SELECT id, title, status, created_at FROM tenders WHERE id=%s AND tenant=%s", (tid, tenant)).fetchone()
         if not r:
             raise HTTPException(404, "No such tender")
         return {"id": r[0], "title": r[1], "status": r[2], "created_at": r[3].isoformat()}
@@ -163,7 +177,7 @@ def create_app(
         return FileResponse(STATIC / "index.html")
 
     @app.get("/metrics", dependencies=[auth], include_in_schema=False)
-    def metrics():
+    def metrics():  # process-wide counters, no tender data
         return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/health")
@@ -171,12 +185,13 @@ def create_app(
         conn.execute("SELECT 1")
         return {"ok": True}
 
-    @app.get("/tenders", dependencies=[auth])
-    def list_tenders():
+    @app.get("/tenders")
+    def list_tenders(tenant: str = auth):
         rows = conn.execute(
             "SELECT t.id, t.title, t.status, t.created_at, q.total FROM tenders t "
             "LEFT JOIN LATERAL (SELECT total FROM quotes WHERE tender_id=t.id ORDER BY id DESC LIMIT 1) q ON true "
-            "ORDER BY t.id DESC LIMIT 50"
+            "WHERE t.tenant=%s ORDER BY t.id DESC LIMIT 50",
+            (tenant,),
         ).fetchall()
         return [
             {
@@ -189,17 +204,17 @@ def create_app(
             for r in rows
         ]
 
-    @app.post("/tenders", status_code=201, dependencies=[auth])
-    def create(body: TenderIn):
-        limiter.check()
-        tid = create_tender(conn, body.title, body.text)
+    @app.post("/tenders", status_code=201)
+    def create(body: TenderIn, tenant: str = auth):
+        limiters.setdefault(tenant, RateLimiter(max_tenders_per_minute)).check()
+        tid = create_tender(conn, body.title, body.text, tenant)
         TENDERS.labels("created").inc()
         _, res = guarded(tid, lambda: start(graph(), tid, body.text))
-        return {**tender_row(tid), **shown(res)}
+        return {**tender_row(tid, tenant), **shown(res)}
 
-    @app.get("/tenders/{tid}", dependencies=[auth])
-    def get_tender(tid: int):
-        t = tender_row(tid)
+    @app.get("/tenders/{tid}")
+    def get_tender(tid: int, tenant: str = auth):
+        t = tender_row(tid, tenant)
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
         quote = conn.execute(
             "SELECT draft, total, status, decided_by, notes, decided_at FROM quotes WHERE tender_id=%s ORDER BY id DESC LIMIT 1",
@@ -226,10 +241,10 @@ def create_app(
             "audit": [{"at": a[0].isoformat(), "event": a[1], "detail": a[2]} for a in trail],
         }
 
-    @app.post("/tenders/{tid}/delivery/reconcile", dependencies=[auth])
-    def reconcile_delivery(tid: int):
+    @app.post("/tenders/{tid}/delivery/reconcile")
+    def reconcile_delivery(tid: int, tenant: str = auth):
         """Settle a delivery whose outcome is unknown by reading back what the outside system holds. Never resends blind."""
-        tender_row(tid)
+        tender_row(tid, tenant)
         if portal is None:
             raise HTTPException(503, "No quote portal is configured (TENDER_DESK_PORTAL_URL)")
         q = conn.execute(
@@ -241,9 +256,9 @@ def create_app(
         log.info("delivery_reconciled", extra={"tender_id": tid, "state": out["state"]})
         return {k: out[k] for k in ("state", "reference", "attempts", "last_error")}
 
-    @app.post("/tenders/{tid}/decision", dependencies=[auth])
-    def decision(tid: int, body: DecisionIn):
-        t = tender_row(tid)
+    @app.post("/tenders/{tid}/decision")
+    def decision(tid: int, body: DecisionIn, tenant: str = auth):
+        t = tender_row(tid, tenant)
         if t["status"] != "awaiting_approval":
             raise HTTPException(409, f"This tender is {t['status']}, not awaiting approval")
         cfg = {"configurable": {"thread_id": f"tender-{tid}"}}
@@ -251,13 +266,13 @@ def create_app(
         if current is None or body.draft_digest != draft_digest(current):
             raise HTTPException(409, "The draft changed since you opened it. Reload the tender and read it again.")
         if not claim_decision(conn, tid):
-            raise HTTPException(409, f"This tender is {tender_row(tid)['status']}, not awaiting approval")
+            raise HTTPException(409, f"This tender is {tender_row(tid, tenant)['status']}, not awaiting approval")
         res = guarded(
             tid, lambda: decide(graph(), cfg, body.approve, body.by.strip(), body.notes.strip(), draft_digest=body.draft_digest)
         )
         TENDERS.labels("approved" if body.approve else "rejected").inc()
         log.info("tender_decision", extra={"tender_id": tid, "approved": body.approve})
-        out = tender_row(tid)
+        out = tender_row(tid, tenant)
         if "__interrupt__" in res:  # rejected with notes: a revised draft is waiting
             out.update(shown(res))
         return out
@@ -278,7 +293,10 @@ def build_default_app() -> FastAPI:
 
     token = os.environ.get("TENDER_DESK_API_TOKEN") or None
     allow_no_auth = os.environ.get("TENDER_DESK_ALLOW_NO_AUTH") == "1"
-    if token is None and not allow_no_auth:
+    tenant_tokens = None
+    if raw := os.environ.get("TENDER_DESK_TENANT_TOKENS"):  # "acme=<token>,bolt=<token>"
+        tenant_tokens = {tok.strip(): name.strip() for name, _, tok in (p.partition("=") for p in raw.split(",")) if name and tok}
+    if token is None and tenant_tokens is None and not allow_no_auth:
         raise RuntimeError(
             "Set TENDER_DESK_API_TOKEN (any long random string). For local development only: TENDER_DESK_ALLOW_NO_AUTH=1."
         )
@@ -301,6 +319,7 @@ def build_default_app() -> FastAPI:
         conn=connect(),
         checkpointer=saver,
         api_token=token,
+        tenant_tokens=tenant_tokens,
         allow_no_auth=allow_no_auth,
         max_tenders_per_minute=int(os.environ.get("TENDER_DESK_MAX_TENDERS_PER_MIN", "10")),
         portal=portal,

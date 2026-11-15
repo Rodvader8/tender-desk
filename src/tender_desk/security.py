@@ -10,18 +10,28 @@ from collections.abc import Callable
 from fastapi import Header, HTTPException
 
 
-def make_auth(token: str | None) -> Callable[..., None]:
-    """Bearer-token dependency. token=None means authentication is deliberately switched off (local development only)."""
+def make_tenant_auth(tokens: dict[str, str] | None) -> Callable[..., str]:
+    """Bearer-token dependency that returns the caller's tenant. `tokens` maps each token to its tenant.
+    tokens=None means authentication is deliberately switched off (local development only): everyone is 'default'."""
 
-    def auth(authorization: str | None = Header(default=None)) -> None:
-        if token is None:
-            return
+    def auth(authorization: str | None = Header(default=None)) -> str:
+        if tokens is None:
+            return "default"
         supplied = authorization[7:] if authorization and authorization.lower().startswith("bearer ") else ""
-        # constant-time comparison, so the check does not leak how much of a guess was right
-        if not hmac.compare_digest(supplied.encode(), token.encode()):
+        found = None
+        for token, tenant in tokens.items():  # no early exit, and each comparison is constant-time, so timing says nothing
+            if hmac.compare_digest(supplied.encode(), token.encode()):
+                found = tenant
+        if found is None:
             raise HTTPException(401, "Missing or wrong API token", headers={"WWW-Authenticate": "Bearer"})
+        return found
 
     return auth
+
+
+def make_auth(token: str | None) -> Callable[..., str]:
+    """One shared token, one tenant ('default'). token=None switches authentication off (local development only)."""
+    return make_tenant_auth(None if token is None else {token: "default"})
 
 
 class RateLimiter:
