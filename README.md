@@ -43,6 +43,9 @@ docker compose run --rm app python scripts/seed.py   # once: the invented price 
 
 Open http://127.0.0.1:8000 and enter the token.
 
+You need your own OpenRouter key; create one at https://openrouter.ai/keys. The repo contains no keys, and the tests below don't need one.
+Live runs call a paid model through your OpenRouter account and spend real money; the spend limits above stop a run, the project or the account at the caps you set.
+
 **For development:**
 
 ```bash
