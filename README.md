@@ -308,6 +308,17 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ### 6. Personal data redaction
 
+**In short.** Before the model reads a tender, names, phone numbers, emails and street addresses are swapped for placeholders (`[PERSON_1]`). The code puts the real values back in the draft the reviewer sees, and logs only counts. Tests check that no real value reaches the model call, the audit log, the run trace, the logs or the metrics.
+
+| detector | names | phones | emails | addresses | where it runs |
+|---|---|---|---|---|---|
+| v3 rules (**in the app**) | 87% found | 100% | 100% | 100% | always; no model, instant |
+| v3 hybrid (rules + local Privacy Filter model) | 97% found | 100% | 100% | 100% | offline experiment; about 11 s a tender on CPU |
+
+Recall on `pii_test3.jsonl`, 100 invented tenders I wrote, scored once, criteria set in advance. Precision was 100% and clean tenders raised no false alarms. **Read this with care:** the data is invented and written by me, so these numbers show the rules cover the layouts I thought of, not what real tenders would score. The first version (v1) failed its criteria on an earlier set (names 68%, addresses 62% found, 17 false alarms on 16 clean tenders), and those results are kept below. It isn't anonymisation: a missed value goes to the model. Australian formats only.
+
+The rest of this section is the detail: policy, method, the three detector rounds with every table, and the limits.
+
 A tender can carry a site contact's name, a mobile number, an email, a home address. The model doesn't need any of it to price a job, and the model provider would otherwise see it. A redaction step now runs before `extract`. What the model reads is the tender with those values swapped for placeholders; the same value always gets the same placeholder inside one tender. Everything downstream that the model writes (job summary, line descriptions) can carry a placeholder, and the code swaps the real value back in when it builds the draft. Reviewer notes typed on a rejection go through the same step before they reach the model.
 
 **Policy.** Personal means a person's name, phone, email or street address. Company names, ABNs and ACNs, `1300`/`1800`/`13 xx xx` numbers and a bare suburb or postcode are business or public details and are not redacted. Quantities, part numbers and the work itself are never touched.
