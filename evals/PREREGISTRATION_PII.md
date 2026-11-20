@@ -55,3 +55,7 @@ Rules for changing things: rules may be changed after looking at dev results and
 ## Correction, written after the test run and before the README
 
 Two descriptions above were wrong about the sets, not about the rules. The test set was not "about a fifth" test-only layouts: the generator lists the test-only templates twice, so about two thirds of the contact templates drawn for the test set never appear in the tuning set. The same doubling applies to the near-miss lines that only the test set has (`TEST_BODY`), which is why three planted near-miss strings repeat many times and inflate the false-positive count. Nothing was re-scored and no rule changed after the test run. The unamended test numbers are the ones published.
+
+## Detector v2 run, after Rod agreed to the download
+
+Scored once on `pii_test.jsonl` with the scoring above and no changes to the model or its settings (`results/pii_test_v2_privacy_filter.json`). It wasn't run on the tuning set, because nothing was tuned. The v1 criteria table doesn't apply to it, but the README reads it against the same table for comparison.

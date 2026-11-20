@@ -1,0 +1,436 @@
+{
+ "detector": "v2_privacy_filter",
+ "set": "test",
+ "tenders": 80,
+ "tenders_without_personal_data": 16,
+ "per_type": {
+  "PERSON": {
+   "labelled": 114,
+   "found": 110,
+   "recall": 0.965,
+   "predicted": 111,
+   "correct": 110,
+   "precision": 0.991
+  },
+  "PHONE": {
+   "labelled": 91,
+   "found": 79,
+   "recall": 0.868,
+   "predicted": 89,
+   "correct": 79,
+   "precision": 0.888
+  },
+  "EMAIL": {
+   "labelled": 29,
+   "found": 28,
+   "recall": 0.966,
+   "predicted": 29,
+   "correct": 29,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 32,
+   "found": 22,
+   "recall": 0.688,
+   "predicted": 71,
+   "correct": 31,
+   "precision": 0.437
+  }
+ },
+ "tenders_with_at_least_one_miss": 20,
+ "false_positives_on_tenders_without_personal_data": 4,
+ "misses": [
+  {
+   "id": "t003",
+   "type": "PHONE",
+   "value": "5472 6625"
+  },
+  {
+   "id": "t007",
+   "type": "PERSON",
+   "value": "INES OKAFOR"
+  },
+  {
+   "id": "t009",
+   "type": "ADDRESS",
+   "value": "Galloway Estate, Hawthorn"
+  },
+  {
+   "id": "t010",
+   "type": "PHONE",
+   "value": "07 55508594"
+  },
+  {
+   "id": "t010",
+   "type": "ADDRESS",
+   "value": "3/16 Rosella Court\nFremantle WA 6160"
+  },
+  {
+   "id": "t012",
+   "type": "PERSON",
+   "value": "Esther"
+  },
+  {
+   "id": "t012",
+   "type": "PHONE",
+   "value": "0491575103"
+  },
+  {
+   "id": "t017",
+   "type": "ADDRESS",
+   "value": "127 Ironbark Terrace\nKenmore QLD 4069"
+  },
+  {
+   "id": "t021",
+   "type": "ADDRESS",
+   "value": "Cormorant Estate, Kenmore"
+  },
+  {
+   "id": "t021",
+   "type": "PHONE",
+   "value": "0491577894"
+  },
+  {
+   "id": "t022",
+   "type": "PHONE",
+   "value": "5760 8835"
+  },
+  {
+   "id": "t024",
+   "type": "ADDRESS",
+   "value": "Unit 183A Sandpiper Pl, Kellyville Ridge NSW 2155"
+  },
+  {
+   "id": "t024",
+   "type": "PHONE",
+   "value": "+61491575843"
+  },
+  {
+   "id": "t025",
+   "type": "ADDRESS",
+   "value": "79 Ironbark Avenue Glenelg SA 5045"
+  },
+  {
+   "id": "t030",
+   "type": "PHONE",
+   "value": "5400 2311"
+  },
+  {
+   "id": "t039",
+   "type": "PERSON",
+   "value": "Ines"
+  },
+  {
+   "id": "t039",
+   "type": "PHONE",
+   "value": "08-5550-9091"
+  },
+  {
+   "id": "t045",
+   "type": "PHONE",
+   "value": "5046 3363"
+  },
+  {
+   "id": "t045",
+   "type": "ADDRESS",
+   "value": "Cormorant Estate, Glenelg"
+  },
+  {
+   "id": "t046",
+   "type": "PERSON",
+   "value": "PING WHITLOCK"
+  },
+  {
+   "id": "t046",
+   "type": "EMAIL",
+   "value": "anil.mehta at iinet dot net dot au"
+  },
+  {
+   "id": "t047",
+   "type": "PHONE",
+   "value": "54614936"
+  },
+  {
+   "id": "t051",
+   "type": "PHONE",
+   "value": "5786 6400"
+  },
+  {
+   "id": "t054",
+   "type": "ADDRESS",
+   "value": "94 ironbark drive, kellyville ridge"
+  },
+  {
+   "id": "t057",
+   "type": "PHONE",
+   "value": "+61491571200"
+  },
+  {
+   "id": "t063",
+   "type": "ADDRESS",
+   "value": "Rosella Estate, Glenelg"
+  },
+  {
+   "id": "t064",
+   "type": "ADDRESS",
+   "value": "Sandpiper Estate, Kenmore"
+  }
+ ],
+ "false_positives": [
+  {
+   "id": "t001",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t003",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t003",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t003",
+   "type": "ADDRESS",
+   "value": "32"
+  },
+  {
+   "id": "t003",
+   "type": "ADDRESS",
+   "value": "MPa"
+  },
+  {
+   "id": "t005",
+   "type": "ADDRESS",
+   "value": "32 MPa, 300 mm wide"
+  },
+  {
+   "id": "t006",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t006",
+   "type": "ADDRESS",
+   "value": "6 Lane markers and 2 Road base layers"
+  },
+  {
+   "id": "t006",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t007",
+   "type": "PHONE",
+   "value": "51 824 753 556"
+  },
+  {
+   "id": "t011",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t011",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t013",
+   "type": "ADDRESS",
+   "value": "32"
+  },
+  {
+   "id": "t013",
+   "type": "ADDRESS",
+   "value": "MPa"
+  },
+  {
+   "id": "t014",
+   "type": "PHONE",
+   "value": "51 824 753 556"
+  },
+  {
+   "id": "t015",
+   "type": "PHONE",
+   "value": "61 234 567 890"
+  },
+  {
+   "id": "t018",
+   "type": "ADDRESS",
+   "value": "6 Lane markers and 2 Road base layers"
+  },
+  {
+   "id": "t018",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t018",
+   "type": "ADDRESS",
+   "value": "14 Concrete Pump"
+  },
+  {
+   "id": "t023",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t023",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t025",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t026",
+   "type": "ADDRESS",
+   "value": "0245"
+  },
+  {
+   "id": "t026",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t029",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t031",
+   "type": "ADDRESS",
+   "value": "25MPa concrete"
+  },
+  {
+   "id": "t031",
+   "type": "PHONE",
+   "value": "51 824 753 556"
+  },
+  {
+   "id": "t031",
+   "type": "ADDRESS",
+   "value": "6 Lane markers and 2 Road base layers"
+  },
+  {
+   "id": "t031",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t032",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t032",
+   "type": "ADDRESS",
+   "value": "32 MPa, 300 mm wide"
+  },
+  {
+   "id": "t033",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t035",
+   "type": "PERSON",
+   "value": "MPa"
+  },
+  {
+   "id": "t037",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t037",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t042",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t050",
+   "type": "PHONE",
+   "value": "1800 555 020"
+  },
+  {
+   "id": "t051",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t053",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t054",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t055",
+   "type": "PHONE",
+   "value": "1300 555 019"
+  },
+  {
+   "id": "t055",
+   "type": "PHONE",
+   "value": "1800 555 020"
+  },
+  {
+   "id": "t056",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t056",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t058",
+   "type": "ADDRESS",
+   "value": "2 Park Lane Pavers"
+  },
+  {
+   "id": "t058",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t060",
+   "type": "ADDRESS",
+   "value": "32 MPa, 300 mm wide"
+  },
+  {
+   "id": "t068",
+   "type": "ADDRESS",
+   "value": "4471-22"
+  },
+  {
+   "id": "t068",
+   "type": "ADDRESS",
+   "value": "12"
+  },
+  {
+   "id": "t070",
+   "type": "ADDRESS",
+   "value": "32"
+  },
+  {
+   "id": "t070",
+   "type": "ADDRESS",
+   "value": "MPa"
+  }
+ ]
+}

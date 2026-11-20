@@ -349,7 +349,22 @@ The false positives are three strings that I planted as near misses and repeated
 
 What a miss means: the model sees the value. This reduces what leaves the server; it doesn't guarantee that nothing does.
 
-Detector v2, comparing against OpenAI's open-source Privacy Filter on the same test set, hasn't been run (it's a 2.8 GB model download and needed Rod's say-so first). It will go next to v1 whichever way it comes out.
+**Detector v2: OpenAI's open-source Privacy Filter, same test set, same scoring.** Apache 2.0, run locally on CPU through `scripts/score_pii_v2.py` (needs torch and a 2.8 GB download, so it isn't in the app or CI). Its person, phone, email and address labels are mapped to ours; its other labels are ignored. Not tuned or changed in any way. Scored once.
+
+| type | v1 rules recall / precision | v2 Privacy Filter recall / precision |
+|---|---|---|
+| email | 0.931 / 1.000 | **0.966** / 1.000 |
+| phone | **0.978** / 0.840 | 0.868 / **0.888** |
+| address | **0.625** / 0.333 | **0.688** / **0.437** |
+| person | 0.684 / **1.000** | **0.965** / 0.991 |
+| tenders with a miss (of 80) | 38 | **20** |
+| false positives on the 16 clean tenders | 17 | **4** |
+
+Neither beats the other everywhere. The model is far better at names (110 of 114 found, including names with no cue word, which v1 can't do by design), and it also gets emails written as plain text and lower-case addresses wrongly written by v1's rules. The rules are better at phone numbers: the model missed 12 of 91, mostly 8-digit local numbers (`5472 6625`) and a few mobiles written with no spaces or a `+61` prefix (`0491575103`, `+61491575843`), and it flagged an ABN, a 1800 number and a drawing number as phones or addresses, which breaks the policy above. Its address precision is poor for the same reason as v1's: `2 Park Lane Pavers`, `12 Boundary Road`, and also scope text like `32 MPa, 300 mm wide` and `6 Lane markers and 2 Road base layers`. It misses the `Lot 5 … Estate` addresses too. By the pre-registered criteria v2 would pass for person and email, and fail phone recall, address recall and address precision.
+
+Cost: about 15 minutes for the 80 tenders on this laptop's CPU, roughly 11 seconds a tender, and a 2.8 GB model held in memory. That is a lot to add in front of a quote request, though it's small next to the wait for a human approval.
+
+What this suggests, not tested: keep the rules for phones, emails and the business-number policy, and add the model for names. Running both and taking the union would likely beat either alone on recall, at the price of more false positives and the latency above. I haven't built or measured that, so the app still runs v1 only.
 
 Limits, plainly:
 - Australian formats only. A US phone number or a UK postcode isn't recognised.
