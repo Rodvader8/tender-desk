@@ -1,0 +1,80 @@
+{
+ "detector": "v1_rules",
+ "set": "dev",
+ "tenders": 30,
+ "tenders_without_personal_data": 6,
+ "per_type": {
+  "PERSON": {
+   "labelled": 45,
+   "found": 38,
+   "recall": 0.844,
+   "predicted": 38,
+   "correct": 38,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 32,
+   "found": 32,
+   "recall": 1.0,
+   "predicted": 32,
+   "correct": 32,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 13,
+   "found": 13,
+   "recall": 1.0,
+   "predicted": 13,
+   "correct": 13,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 17,
+   "found": 17,
+   "recall": 1.0,
+   "predicted": 17,
+   "correct": 17,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 6,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [
+  {
+   "id": "d001",
+   "type": "PERSON",
+   "value": "Hamid Kowalski"
+  },
+  {
+   "id": "d006",
+   "type": "PERSON",
+   "value": "Hamid Tran"
+  },
+  {
+   "id": "d008",
+   "type": "PERSON",
+   "value": "Craig Hollis"
+  },
+  {
+   "id": "d010",
+   "type": "PERSON",
+   "value": "James Pettigrew"
+  },
+  {
+   "id": "d019",
+   "type": "PERSON",
+   "value": "Deb Nair"
+  },
+  {
+   "id": "d023",
+   "type": "PERSON",
+   "value": "Sione Hollis"
+  },
+  {
+   "id": "d023",
+   "type": "PERSON",
+   "value": "Maria Lopez"
+  }
+ ],
+ "false_positives": []
+}

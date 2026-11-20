@@ -1,0 +1,591 @@
+{
+ "detector": "v1_rules",
+ "set": "test",
+ "tenders": 80,
+ "tenders_without_personal_data": 16,
+ "per_type": {
+  "PERSON": {
+   "labelled": 114,
+   "found": 78,
+   "recall": 0.684,
+   "predicted": 78,
+   "correct": 78,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 91,
+   "found": 89,
+   "recall": 0.978,
+   "predicted": 106,
+   "correct": 89,
+   "precision": 0.84
+  },
+  "EMAIL": {
+   "labelled": 29,
+   "found": 27,
+   "recall": 0.931,
+   "predicted": 27,
+   "correct": 27,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 32,
+   "found": 20,
+   "recall": 0.625,
+   "predicted": 60,
+   "correct": 20,
+   "precision": 0.333
+  }
+ },
+ "tenders_with_at_least_one_miss": 38,
+ "false_positives_on_tenders_without_personal_data": 17,
+ "misses": [
+  {
+   "id": "t002",
+   "type": "PERSON",
+   "value": "Joanne Brennan"
+  },
+  {
+   "id": "t004",
+   "type": "PERSON",
+   "value": "Rohan"
+  },
+  {
+   "id": "t005",
+   "type": "PERSON",
+   "value": "Bruce Szabo"
+  },
+  {
+   "id": "t008",
+   "type": "PERSON",
+   "value": "Esther Whitlock"
+  },
+  {
+   "id": "t008",
+   "type": "PERSON",
+   "value": "Natasha Banerjee"
+  },
+  {
+   "id": "t009",
+   "type": "ADDRESS",
+   "value": "Galloway Estate, Hawthorn"
+  },
+  {
+   "id": "t011",
+   "type": "PERSON",
+   "value": "Fatima Lindqvist"
+  },
+  {
+   "id": "t012",
+   "type": "ADDRESS",
+   "value": "81 rosella road, kenmore"
+  },
+  {
+   "id": "t012",
+   "type": "PERSON",
+   "value": "Esther"
+  },
+  {
+   "id": "t013",
+   "type": "PERSON",
+   "value": "Lachlan Brennan"
+  },
+  {
+   "id": "t013",
+   "type": "PERSON",
+   "value": "Dimitri Brennan"
+  },
+  {
+   "id": "t014",
+   "type": "PERSON",
+   "value": "Rohan Vasquez"
+  },
+  {
+   "id": "t015",
+   "type": "PERSON",
+   "value": "Rohan Brennan"
+  },
+  {
+   "id": "t018",
+   "type": "PERSON",
+   "value": "Fatima Doyle"
+  },
+  {
+   "id": "t019",
+   "type": "PERSON",
+   "value": "Ines Banerjee"
+  },
+  {
+   "id": "t021",
+   "type": "ADDRESS",
+   "value": "Cormorant Estate, Kenmore"
+  },
+  {
+   "id": "t022",
+   "type": "PERSON",
+   "value": "Natasha Papadopoulos"
+  },
+  {
+   "id": "t031",
+   "type": "PERSON",
+   "value": "Fatima"
+  },
+  {
+   "id": "t031",
+   "type": "PERSON",
+   "value": "Esther Okafor"
+  },
+  {
+   "id": "t032",
+   "type": "ADDRESS",
+   "value": "Ironbark Estate, Fremantle"
+  },
+  {
+   "id": "t033",
+   "type": "ADDRESS",
+   "value": "69 fenwick road, kenmore"
+  },
+  {
+   "id": "t033",
+   "type": "PERSON",
+   "value": "Dimitri Zhou"
+  },
+  {
+   "id": "t036",
+   "type": "PERSON",
+   "value": "Esther Vasquez"
+  },
+  {
+   "id": "t037",
+   "type": "PERSON",
+   "value": "Natasha Mehta"
+  },
+  {
+   "id": "t038",
+   "type": "PERSON",
+   "value": "Natasha Whitlock"
+  },
+  {
+   "id": "t039",
+   "type": "PERSON",
+   "value": "Ines"
+  },
+  {
+   "id": "t040",
+   "type": "PERSON",
+   "value": "Lachlan Vasquez"
+  },
+  {
+   "id": "t043",
+   "type": "PERSON",
+   "value": "Mick Whitlock"
+  },
+  {
+   "id": "t044",
+   "type": "PERSON",
+   "value": "Natasha Zhou"
+  },
+  {
+   "id": "t045",
+   "type": "ADDRESS",
+   "value": "Cormorant Estate, Glenelg"
+  },
+  {
+   "id": "t046",
+   "type": "PERSON",
+   "value": "Dimitri"
+  },
+  {
+   "id": "t046",
+   "type": "PHONE",
+   "value": "54081667"
+  },
+  {
+   "id": "t046",
+   "type": "EMAIL",
+   "value": "anil.mehta at iinet dot net dot au"
+  },
+  {
+   "id": "t047",
+   "type": "PHONE",
+   "value": "54614936"
+  },
+  {
+   "id": "t047",
+   "type": "EMAIL",
+   "value": "lachlan.papadopoulos at bigpond dot com"
+  },
+  {
+   "id": "t048",
+   "type": "PERSON",
+   "value": "Rohan Marsh"
+  },
+  {
+   "id": "t048",
+   "type": "PERSON",
+   "value": "Anil Whitlock"
+  },
+  {
+   "id": "t049",
+   "type": "ADDRESS",
+   "value": "87 lyndhurst road, glenelg"
+  },
+  {
+   "id": "t051",
+   "type": "ADDRESS",
+   "value": "Ironbark Estate, Glenelg"
+  },
+  {
+   "id": "t052",
+   "type": "PERSON",
+   "value": "Mick Zhou"
+  },
+  {
+   "id": "t052",
+   "type": "PERSON",
+   "value": "Natasha"
+  },
+  {
+   "id": "t053",
+   "type": "PERSON",
+   "value": "Fatima"
+  },
+  {
+   "id": "t054",
+   "type": "ADDRESS",
+   "value": "Fenwick Estate, Kenmore"
+  },
+  {
+   "id": "t054",
+   "type": "PERSON",
+   "value": "Joanne Brennan"
+  },
+  {
+   "id": "t054",
+   "type": "ADDRESS",
+   "value": "94 ironbark drive, kellyville ridge"
+  },
+  {
+   "id": "t058",
+   "type": "PERSON",
+   "value": "Lachlan Okafor"
+  },
+  {
+   "id": "t060",
+   "type": "PERSON",
+   "value": "Gareth Papadopoulos"
+  },
+  {
+   "id": "t062",
+   "type": "PERSON",
+   "value": "Joanne Banerjee"
+  },
+  {
+   "id": "t063",
+   "type": "PERSON",
+   "value": "Ping Brennan"
+  },
+  {
+   "id": "t063",
+   "type": "ADDRESS",
+   "value": "Rosella Estate, Glenelg"
+  },
+  {
+   "id": "t064",
+   "type": "ADDRESS",
+   "value": "Sandpiper Estate, Kenmore"
+  },
+  {
+   "id": "t064",
+   "type": "PERSON",
+   "value": "Kerry-Anne Papadopoulos"
+  }
+ ],
+ "false_positives": [
+  {
+   "id": "t001",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t003",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t003",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t003",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t004",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t005",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t006",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t011",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t012",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t018",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t023",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t023",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t025",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t026",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t027",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t028",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t028",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t029",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t032",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t033",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t034",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t034",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t037",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t037",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t040",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t042",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t042",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t047",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t048",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t051",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t052",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t053",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t054",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t056",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t056",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t057",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t058",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t058",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t059",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t063",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t066",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t067",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t068",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t069",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t071",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t071",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t072",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t072",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t073",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t073",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t074",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t075",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t075",
+   "type": "ADDRESS",
+   "value": "2 Park Lane"
+  },
+  {
+   "id": "t076",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t077",
+   "type": "PHONE",
+   "value": "0245 123 456"
+  },
+  {
+   "id": "t077",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  },
+  {
+   "id": "t079",
+   "type": "ADDRESS",
+   "value": "12 Boundary Road"
+  }
+ ]
+}

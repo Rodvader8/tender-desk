@@ -17,18 +17,78 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parents[1] / "evals"
 
 FIRST_DEV = ["Priya", "Tom", "Hamid", "Linh", "Deb", "James", "Maria", "Craig", "Aisha", "Wayne", "Bronwyn", "Sione"]
-LAST_DEV = ["Nair", "O'Brien", "Karimi", "Tran", "Kowalski", "McAllister", "Lopez", "Fitzgerald", "Rahman", "Hollis", "Pettigrew", "Tuilagi"]
-FIRST_TEST = ["Natasha", "Dimitri", "Ping", "Gareth", "Fatima", "Rohan", "Kerry-Anne", "Mick", "Esther", "Anil", "Joanne", "Lachlan", "Ines", "Bruce"]
-LAST_TEST = ["Vasquez", "Papadopoulos", "Zhou", "Whitlock", "Haddad", "Mehta", "Brennan", "Szabo", "Okafor", "Banerjee", "Doyle", "Ferraro", "Lindqvist", "Marsh"]
+LAST_DEV = [
+    "Nair",
+    "O'Brien",
+    "Karimi",
+    "Tran",
+    "Kowalski",
+    "McAllister",
+    "Lopez",
+    "Fitzgerald",
+    "Rahman",
+    "Hollis",
+    "Pettigrew",
+    "Tuilagi",
+]
+FIRST_TEST = [
+    "Natasha",
+    "Dimitri",
+    "Ping",
+    "Gareth",
+    "Fatima",
+    "Rohan",
+    "Kerry-Anne",
+    "Mick",
+    "Esther",
+    "Anil",
+    "Joanne",
+    "Lachlan",
+    "Ines",
+    "Bruce",
+]
+LAST_TEST = [
+    "Vasquez",
+    "Papadopoulos",
+    "Zhou",
+    "Whitlock",
+    "Haddad",
+    "Mehta",
+    "Brennan",
+    "Szabo",
+    "Okafor",
+    "Banerjee",
+    "Doyle",
+    "Ferraro",
+    "Lindqvist",
+    "Marsh",
+]
 
 STREETS_DEV = ["Wattle", "Banksia", "Kestrel", "Marlborough", "Hargrave", "Cobalt", "Tallowood"]
 STREETS_TEST = ["Ironbark", "Lyndhurst", "Cormorant", "Fenwick", "Galloway", "Sandpiper", "Westbourne", "Rosella"]
 TYPES_LONG = ["Street", "Road", "Avenue", "Drive", "Court", "Place", "Lane", "Crescent", "Parade", "Terrace"]
 TYPES_SHORT = ["St", "Rd", "Ave", "Dr", "Ct", "Pl", "Ln", "Cres", "Pde", "Tce"]
-SUBURBS_DEV = [("Parramatta", "NSW", "2150"), ("Box Hill", "VIC", "3128"), ("Manly", "NSW", "2095"), ("Indooroopilly", "QLD", "4068")]
-SUBURBS_TEST = [("Fremantle", "WA", "6160"), ("Glenelg", "SA", "5045"), ("Kellyville Ridge", "NSW", "2155"), ("Hawthorn", "VIC", "3122"), ("Kenmore", "QLD", "4069")]
+SUBURBS_DEV = [
+    ("Parramatta", "NSW", "2150"),
+    ("Box Hill", "VIC", "3128"),
+    ("Manly", "NSW", "2095"),
+    ("Indooroopilly", "QLD", "4068"),
+]
+SUBURBS_TEST = [
+    ("Fremantle", "WA", "6160"),
+    ("Glenelg", "SA", "5045"),
+    ("Kellyville Ridge", "NSW", "2155"),
+    ("Hawthorn", "VIC", "3122"),
+    ("Kenmore", "QLD", "4069"),
+]
 DOMAINS = ["gmail.com", "outlook.com", "bigpond.com", "iinet.net.au", "harbour-works.example", "greenfield-homes.example"]
-COMPANIES = ["Bluegum Constructions Pty Ltd", "Ironbark Plumbing Pty Ltd", "Corella Hardware", "Harbour Works Group", "Tallow Electrical Pty Ltd"]
+COMPANIES = [
+    "Bluegum Constructions Pty Ltd",
+    "Ironbark Plumbing Pty Ltd",
+    "Corella Hardware",
+    "Harbour Works Group",
+    "Tallow Electrical Pty Ltd",
+]
 
 # Plain lines with no personal data. Several are deliberate near misses for the detector.
 BODY = [
@@ -123,7 +183,9 @@ def phone_variants(rng: random.Random) -> str:
     return rng.choice(mobs + list(land.values()))
 
 
-def build(rng: random.Random, firsts, lasts, streets, suburbs, templates, body, n_pos: int, n_neg: int, prefix: str) -> list[dict]:
+def build(
+    rng: random.Random, firsts, lasts, streets, suburbs, templates, body, n_pos: int, n_neg: int, prefix: str
+) -> list[dict]:
     rows = []
 
     def name_plain() -> str:
@@ -150,7 +212,14 @@ def build(rng: random.Random, firsts, lasts, streets, suburbs, templates, body, 
 
     def email_plain(person: str | None = None) -> str:
         who = (person or name_plain()).lower().replace("'", "")
-        local = rng.choice([who.replace(" ", "."), who.replace(" ", ""), who.split()[0][0] + who.split()[1], who.replace(" ", "_") + rng.choice(["", "+tenders"])])
+        local = rng.choice(
+            [
+                who.replace(" ", "."),
+                who.replace(" ", ""),
+                who.split()[0][0] + who.split()[1],
+                who.replace(" ", "_") + rng.choice(["", "+tenders"]),
+            ]
+        )
         e = f"{local}@{rng.choice(DOMAINS)}"
         return e.upper() if rng.random() < 0.08 else e
 
@@ -222,7 +291,18 @@ def parse_markup(raw: str) -> tuple[str, list[dict]]:
 
 def main() -> None:
     dev = build(random.Random(20261120), FIRST_DEV, LAST_DEV, STREETS_DEV, SUBURBS_DEV, SHARED + DEV_ONLY, BODY, 24, 6, "d")
-    test = build(random.Random(20261121), FIRST_TEST, LAST_TEST, STREETS_TEST, SUBURBS_TEST, SHARED + TEST_ONLY + TEST_ONLY, BODY + TEST_BODY + TEST_BODY, 64, 16, "t")
+    test = build(
+        random.Random(20261121),
+        FIRST_TEST,
+        LAST_TEST,
+        STREETS_TEST,
+        SUBURBS_TEST,
+        SHARED + TEST_ONLY + TEST_ONLY,
+        BODY + TEST_BODY + TEST_BODY,
+        64,
+        16,
+        "t",
+    )
     for name, rows in (("pii_dev", dev), ("pii_test", test)):
         (OUT / f"{name}.jsonl").write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n")
         by = {}
