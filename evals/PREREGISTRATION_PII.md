@@ -51,3 +51,7 @@ Not claimed: this is not anonymisation. A miss means the model sees the value. F
 Detector v2 (optional, only if Rod agrees to the download first): OpenAI's open-source Privacy Filter run locally on CPU against the same test set with the same scoring, reported next to v1 whichever wins. It is not part of the v1 criteria above.
 
 Rules for changing things: rules may be changed after looking at dev results and never after looking at test results. If I change anything after the test run, it goes in an amendment below with the reason, and the unamended test numbers stay in the README.
+
+## Correction, written after the test run and before the README
+
+Two descriptions above were wrong about the sets, not about the rules. The test set was not "about a fifth" test-only layouts: the generator lists the test-only templates twice, so about two thirds of the contact templates drawn for the test set never appear in the tuning set. The same doubling applies to the near-miss lines that only the test set has (`TEST_BODY`), which is why three planted near-miss strings repeat many times and inflate the false-positive count. Nothing was re-scored and no rule changed after the test run. The unamended test numbers are the ones published.

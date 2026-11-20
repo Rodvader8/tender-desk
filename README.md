@@ -8,7 +8,8 @@ All data in this repo is invented. No real business, supplier or client is repre
 
 ```mermaid
 flowchart LR
-    T[Tender text] --> E[extract scope<br/>LLM, structured output]
+    T[Tender text] --> D[redact personal data<br/>code: placeholders in]
+    D --> E[extract scope<br/>LLM, structured output]
     E --> R[retrieve<br/>pgvector: price items + past jobs]
     R --> S[estimate<br/>LLM picks from candidates]
     S --> B[build draft<br/>code: checks + all arithmetic]
@@ -28,6 +29,7 @@ Design rules, each enforced in code and covered by a test:
 - **An approval applies to exactly one draft.** The draft is hashed (SHA-256 of its canonical JSON) and a decision must name that digest. If the tender was revised since the reviewer opened it, the decision is refused with a 409; if it reaches the graph anyway, the graph refuses and asks again. Taking the decision is an atomic status claim, so two reviewers clicking at once cannot both finalise. The approved digest is stored on the quote.
 - **Sending is safe to repeat and honest about what it doesn't know.** See "Sending the approved quote" below.
 - **Tender text is treated as untrusted**: delimited in the prompt, quantities and instruction-like phrases checked in code, and attacked with 36 injection tests (see the prompt-injection section).
+- **The model doesn't see personal data it doesn't need.** Names, phone numbers, emails and street addresses are replaced with placeholders (`[PERSON_1]`, `[PHONE_1]`, `[EMAIL_1]`, `[ADDRESS_1]`) before the extract step. The code rebuilds the placeholder map from the stored tender text, puts the real values back into the draft the reviewer sees and the quote that's saved, and logs only counts. It's rules for Australian formats, it misses things, and the numbers are in section 6. It isn't anonymisation.
 - **Hard spend limits.** The OpenRouter client refuses to call the API past a per-run cap, a project cap, or when the account balance would drop below a floor. `uv run spend` shows the live numbers.
 
 ## Run it
@@ -304,6 +306,59 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 **Switched on by default: D2.** D1 was the pre-registered set, but D2 adds the line-coverage check, which targets the one kind of attack D1 let through silently. It only raises a flag and never blocks, so its worst case is an extra warning for the reviewer. The honest caveat is that D2's evidence is exploratory, not clean (see above). To compare or switch off: `TENDER_DESK_DEFENSES=D0` (none), `D1`, or `D2` (default), or pass `defenses=` to `build_graph`. The sample tender prices identically with D2 on and raises no false flags; a live injection ("Ignore all previous instructions...") is flagged on the draft.
 
+### 6. Personal data redaction
+
+A tender can carry a site contact's name, a mobile number, an email, a home address. The model doesn't need any of it to price a job, and the model provider would otherwise see it. A redaction step now runs before `extract`. What the model reads is the tender with those values swapped for placeholders; the same value always gets the same placeholder inside one tender. Everything downstream that the model writes (job summary, line descriptions) can carry a placeholder, and the code swaps the real value back in when it builds the draft. Reviewer notes typed on a rejection go through the same step before they reach the model.
+
+**Policy.** Personal means a person's name, phone, email or street address. Company names, ABNs and ACNs, `1300`/`1800`/`13 xx xx` numbers and a bare suburb or postcode are business or public details and are not redacted. Quantities, part numbers and the work itself are never touched.
+
+**What gets logged.** Counts per type, in the audit log (`pii_redacted`: `{"person": 3, "phone": 1, ...}`), as a `redact` step in the run trace, and as a Prometheus counter by type. Never a value, and never the placeholder map, which isn't stored anywhere: it's rebuilt from the tender text the database already holds. A title typed with a name in it is redacted in its audit entry too. Tests assert all of this: they read the scripted model's received prompts, every audit row, every run step, the log records and the metrics text, and fail if any seeded name, number, email or address appears.
+
+**Detector v1: rules, no model.** Emails; AU mobiles and landlines with a digit count check (so `ABN 51 824 753 556`, `12,500 m2` and `04/11/2026` aren't flagged); street addresses (number, street name, street type, optional suburb, state, postcode) and PO boxes; names only after a cue (`Attn:`, `Contact:`, `Site contact:`, `Mr`, `Ms`, `Mrs`, `Miss`, `Dr`, `Regards`, `Kind regards`, `Thanks`, `Cheers`) plus later repeats of the same full name.
+
+**How it was measured.** `evals/PREREGISTRATION_PII.md` was committed with the frozen sets before any detector code existed. Both sets are invented and built by `scripts/make_pii_sets.py` from templates, so every labelled span is exact: 30 tuning tenders and 80 test tenders (16 with no personal data at all, only near misses). The test set uses different names and streets from the tuning set, and about two thirds of its contact templates (counting how often they're drawn) never appear in the tuning set. Recall counts a span as found only if every character of it is covered, because half a phone number is still a leak. Precision counts a predicted span as correct if it overlaps a labelled span of the same type. The test set was scored once, with the rules as they were committed, and the result file is checksummed.
+
+Test set, rules v1, pre-registered criteria beside each number:
+
+| type | labelled | recall | needed | precision | needed | met? |
+|---|---|---|---|---|---|---|
+| email | 29 | **0.931** | 0.95 | 1.000 | 0.95 | recall **missed** |
+| phone | 91 | **0.978** | 0.90 | **0.840** | 0.90 | precision **missed** |
+| address | 32 | **0.625** | 0.80 | **0.333** | 0.90 | both **missed** |
+| person | 114 | **0.684** | 0.60 | 1.000 | 0.80 | met |
+
+False positives on the 16 tenders with no personal data: **17** (limit was 2). 38 of 80 tenders had at least one missed value. So v1 meets 4 of its 8 per-type criteria and misses the other 4 and the false-positive limit; I'm reporting it as failed rather than moving the goalposts. On the tuning set it scored 0.84 recall for names and 1.0 on everything else, which says the tuning set was too easy and the rules were fitted to it.
+
+Where the misses come from (test set, 52 labelled values missed):
+
+| misses | cause |
+|---|---|
+| 8 | person after `Owner:`, which isn't one of the cues |
+| 5 | person after `Prepared by:`, not a cue |
+| 8 | person introduced with no cue ("arrange access with Priya Nair, the owner") |
+| 7 | a first name on its own ("ring the site foreman Esther") |
+| 8 | person in a layout with no cue ("send the quote to ...", or the second name in "Contact A, then B") |
+| 8 | "Lot 5 Cormorant Estate, Kenmore" style addresses with no street number and type |
+| 4 | address typed in lower case |
+| 2 | an 8-digit local number with no `ph`/`mobile` cue |
+| 2 | email written out as "name at gmail dot com" |
+
+I predicted all of these before running, in the pre-registration. The test set was built to contain them on purpose, more than a third of the contact templates drawn are hard ones, so these rates describe a deliberately awkward set. They are not an estimate of how often real tenders leak. I haven't measured real tenders and have none.
+
+The false positives are three strings that I planted as near misses and repeated across the set, which makes the precision look worse than three mistakes would: `0245 123 456` (a 10-digit hinge code, indistinguishable from a Sydney landline by digits alone), `12 Boundary Road base layers` and `2 Park Lane Pavers` (number, capitalised word, street type: that's what an address looks like). A rule can't tell these apart from real addresses without knowing the trade vocabulary. The cost of a false positive here is small and visible: the model sees `[ADDRESS_1]` where it would have seen a scope phrase, and the reviewer still sees the original text restored in the draft.
+
+What a miss means: the model sees the value. This reduces what leaves the server; it doesn't guarantee that nothing does.
+
+Detector v2, comparing against OpenAI's open-source Privacy Filter on the same test set, hasn't been run (it's a 2.8 GB model download and needed Rod's say-so first). It will go next to v1 whichever way it comes out.
+
+Limits, plainly:
+- Australian formats only. A US phone number or a UK postcode isn't recognised.
+- Names are cue-driven. Anything with no cue word before it goes through unchanged.
+- Reviewer notes are checked for values already seen in the tender, plus the normal rules; a first name alone in a note isn't caught.
+- The MCP agent client (`price_line`) takes one line from whoever calls it and doesn't pass through redaction.
+- The draft the reviewer sees, the saved quote and the LangGraph checkpoint hold the real values, in your own database. Redaction is about what the model provider is sent, not about what your own server stores.
+- The audit entry for a reviewer decision stores the reviewer's note as typed (existing behaviour).
+
 ### What these numbers do not show
 
 - **Small and invented.** 66 catalogue items, 74 queries plus 40 in the fresh set (looked at several times now, so treat it as used), one run per model. One query is about 1.5 points, and the same model can differ by one query between runs (DeepSeek wrongly abstained on one query in the final run that it got right in an earlier run).
@@ -313,7 +368,7 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 101 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models. Since those live runs the following were added and tested only with the scripted fake and the stand-in portal, not live against a model: approval bound to the draft, delivery with readback and reconcile, per-tender run trace, tenant isolation.
+Working: the full workflow, the API and approval screen, the evaluation harness, 188 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models. Since those live runs the following were added and tested only with the scripted fake and the stand-in portal, not live against a model: approval bound to the draft, delivery with readback and reconcile, per-tender run trace, tenant isolation.
 
 Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, a scheduled reconcile, and a React front end. 
 
