@@ -5,3 +5,7 @@ Why: every earlier PII set was written by the same AI assistant that wrote the d
 Method: 15 to 20 invented tenders or tender emails, at least 4 with no personal data at all, written as a real tender or email would be. Every invented name, number, email and address is marked up as it is written. Nothing is run against the detector until the file is final.
 
 No pass criteria are set, on purpose: with a set this small each type has few spans, so a threshold would be noise. What gets published, whatever the numbers are: recall and precision per type, every miss and every false positive, and a plain statement that the set is small and invented.
+
+## Correction before scoring: who wrote it
+
+Rod couldn't write the set, and asked the assistant to write it instead, deliberately untidy. So this set is NOT independent: the assistant wrote it knowing how the rules work, and tried to make it hostile (forwarded emails, texts, dictated numbers, initials, nicknames, a cross-street address, an overseas number, codes that look like phones, a name in a greeting). It was written after v3 was frozen and before it was run on this file. It is scored once with the v3 rules and published with every miss, and the README calls it what it is: a rough stress test, not an independent check. A real independent set (written by Rod or a client) is still the better evidence.
