@@ -1,0 +1,60 @@
+{
+ "detector": "v3_hybrid",
+ "set": "test3",
+ "tenders": 100,
+ "tenders_without_personal_data": 20,
+ "per_type": {
+  "PERSON": {
+   "labelled": 116,
+   "found": 113,
+   "recall": 0.974,
+   "predicted": 114,
+   "correct": 114,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 74,
+   "found": 74,
+   "recall": 1.0,
+   "predicted": 74,
+   "correct": 74,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 47,
+   "found": 47,
+   "recall": 1.0,
+   "predicted": 47,
+   "correct": 47,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 46,
+   "found": 46,
+   "recall": 1.0,
+   "predicted": 46,
+   "correct": 46,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 3,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [
+  {
+   "id": "u003",
+   "type": "PERSON",
+   "value": "Kwame"
+  },
+  {
+   "id": "u036",
+   "type": "PERSON",
+   "value": "Saoirse"
+  },
+  {
+   "id": "u050",
+   "type": "PERSON",
+   "value": "Kwame Oyelaran"
+  }
+ ],
+ "false_positives": []
+}

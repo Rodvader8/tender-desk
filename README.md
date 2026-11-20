@@ -366,9 +366,25 @@ Cost: about 15 minutes for the 80 tenders on this laptop's CPU, roughly 11 secon
 
 What this suggests, not tested: keep the rules for phones, emails and the business-number policy, and add the model for names. Running both and taking the union would likely beat either alone on recall, at the price of more false positives and the latency above. I haven't built or measured that, so the app still runs v1 only.
 
+**Detector v3: fixes for what v1 and v2 got wrong, scored on fresh sets.** `evals/PREREGISTRATION_PII_V3.md` was committed with new sets and criteria before any v3 code. `pii_test3.jsonl` (100 invented tenders, 20 with no personal data) was scored once for each variant. The changes, each aimed at a v1 or v2 miss: a label before a number (`SKU`, `part`, `code`, `invoice`, `ref`) stops it being read as a phone; local 8-digit numbers after a nearby phone cue; more street types, `Unit`, `Lot` and `Estate` forms, lower-case addresses only when a suburb follows, and a bare street rejected when a trade noun or lower-case word follows (`base layers`, `Pavers`); `name at domain dot com`; more name cues (`Owner:`, `Prepared by:`, `Name:`), role words (`(owner)`, `the site supervisor`), verb cues (`ring`, `ask for`, `send the quote to`), and a first name or surname caught on its own once the full name has been seen.
+
+| type (test3) | labelled | v3 rules recall / precision | v3 hybrid recall / precision | needed |
+|---|---|---|---|---|
+| email | 47 | **1.000** / 1.000 | 1.000 / 1.000 | 0.95 / 0.95 |
+| phone | 74 | **1.000** / 1.000 | 1.000 / 1.000 | 0.95 / 0.95 |
+| address | 46 | **1.000** / 1.000 | 1.000 / 1.000 | 0.80 / 0.80 |
+| person | 116 | **0.871** / 1.000 | **0.974** / 1.000 | 0.75 / 0.90 rules, 0.90 / 0.90 hybrid |
+| tenders with a miss (of 100) | | 15 | 3 | |
+| false positives on the 20 clean tenders | | 0 | 0 | at most 3 |
+
+The hybrid is the v3 rules plus the Privacy Filter's person spans, with the model's span dropped if it holds a company or filler word, a digit, or overlaps another type. It's an offline experiment (`scripts/score_pii_v3_hybrid.py`); the app runs the v3 rules, and the code has an `extra_detectors` hook if the model is ever added. The model costs about 11 seconds a tender on CPU.
+
+Read these as what they are. The rules match the layouts I imagined. I wrote the new set before the code, and it has new names, streets and near misses, but I wrote it, and it went from "scores 0 to 0.7" on the old sets to "scores 1.0" in one round on the tuning set too. A 1.000 means the rules cover those formats and nothing more. It isn't a real-world rate, and I haven't tested one real tender. The 15 tenders where v3 rules miss a name are all the same two shapes: the second name in "X first, then Y" and a name with no cue, no verb and no role ("Harlan Ng is the contact"). The v1 and v2 numbers above stay as scored.
+
 Limits, plainly:
 - Australian formats only. A US phone number or a UK postcode isn't recognised.
-- Names are cue-driven. Anything with no cue word before it goes through unchanged.
+- Names are cue-driven (cue words, verbs, roles, or a name already seen). A name with none of those goes through unchanged, and the rules alone missed 13% of names on the new set.
+- A code that looks like a phone number and has no label before it (`Hinge set 0245 123 456`) is still flagged.
 - Reviewer notes are checked for values already seen in the tender, plus the normal rules; a first name alone in a note isn't caught.
 - The MCP agent client (`price_line`) takes one line from whoever calls it and doesn't pass through redaction.
 - The draft the reviewer sees, the saved quote and the LangGraph checkpoint hold the real values, in your own database. Redaction is about what the model provider is sent, not about what your own server stores.
@@ -383,7 +399,7 @@ Limits, plainly:
 
 ## Status
 
-Working: the full workflow, the API and approval screen, the evaluation harness, 188 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models. Since those live runs the following were added and tested only with the scripted fake and the stand-in portal, not live against a model: approval bound to the draft, delivery with readback and reconcile, per-tender run trace, tenant isolation.
+Working: the full workflow, the API and approval screen, the evaluation harness, 221 passing tests (model replaced by a scripted fake, real Postgres), live runs on three models. Since those live runs the following were added and tested only with the scripted fake and the stand-in portal, not live against a model: approval bound to the draft, delivery with readback and reconcile, per-tender run trace, tenant isolation.
 
 Next: an output check that flags instruction text appearing in line descriptions, the original tender text shown beside the draft on the approval screen, a scheduled reconcile, and a React front end. 
 
