@@ -1,4 +1,4 @@
-"""Score a PII detector against a labelled set. Usage: python scripts/score_pii.py dev|test [--out results/pii_test_v1_rules.json]
+"""Score a PII detector against a labelled set. Usage: python scripts/score_pii.py dev|test|dev3|test3 [--detector v1] [--out results/pii_test_v1_rules.json]
 
 Recall: a labelled span is found only if every non-space, non-punctuation character of it lies inside a predicted span of the
 same type. Precision: a predicted span is correct if it overlaps a labelled span of the same type. Prints the misses and the false
@@ -11,7 +11,10 @@ import json
 import sys
 from pathlib import Path
 
-from tender_desk.redact import TYPES, detect
+from tender_desk.redact import TYPES
+from tender_desk.redact import detect as detect_v3
+
+detect = detect_v3
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -74,6 +77,11 @@ def score(rows: list[dict]) -> dict:
 
 
 def main() -> None:
+    global detect
+    if "--detector" in sys.argv and sys.argv[sys.argv.index("--detector") + 1] == "v1":
+        from tender_desk.evals.redact_v1 import detect as detect_v1
+
+        detect = detect_v1
     split = sys.argv[1]
     rows = [json.loads(line) for line in (ROOT / "evals" / f"pii_{split}.jsonl").read_text().splitlines()]
     res = score(rows)
@@ -86,7 +94,9 @@ def main() -> None:
         print("  ", f)
     if "--out" in sys.argv:
         out = Path(sys.argv[sys.argv.index("--out") + 1])
-        out.write_text(json.dumps({"detector": "v1_rules", "set": split, **res}, indent=1) + "\n")
+        out.write_text(
+            json.dumps({"detector": "v1_rules" if detect is not detect_v3 else "v3_rules", "set": split, **res}, indent=1) + "\n"
+        )
         print("wrote", out)
 
 

@@ -21,7 +21,9 @@ def test_emails_found(text, expected):
     assert values(find_emails, text) == expected
 
 
-@pytest.mark.parametrize("text", ["No at sign here", "Twitter handle @tradie only", "Cost 5 @ $10 each", "name at gmail dot com"])
+@pytest.mark.parametrize(
+    "text", ["No at sign here", "Twitter handle @tradie only", "Cost 5 @ $10 each", "Meet at the gate at 7.30"]
+)
 def test_emails_near_misses(text):
     assert find_emails(text) == []
 
@@ -74,9 +76,10 @@ def test_phone_near_misses(text):
     assert find_phones(text) == []
 
 
-def test_known_gap_ten_digit_code_starting_02_is_flagged():
-    """A part code that looks exactly like a phone number can't be told apart by digits. Documented in the README."""
-    assert values(find_phones, "Hinge set code 0245 123 456") == ["0245 123 456"]
+def test_known_gap_ten_digit_code_with_no_label_is_flagged():
+    """A code that looks exactly like a phone number can't be told apart by digits; only a label before it (part, code, sku...) does."""
+    assert values(find_phones, "Hinge set 0245 123 456, 40 sets") == ["0245 123 456"]
+    assert find_phones("Hinge set code 0245 123 456") == []
 
 
 # ---- addresses ----
@@ -153,13 +156,14 @@ def test_name_near_misses(text):
 
 
 def test_name_with_no_cue_is_missed_by_design():
-    assert find_names("Arrange access with Priya Nair, the owner, before 8am.") == []
+    assert find_names("The owner is Priya Nair and she works from home.") == []
+    assert find_names("Priya Nair has the keys.") == []
 
 
 def test_full_name_repeat_is_caught_but_first_name_alone_is_not():
     text = "Attn: Priya Nair.\nLater, ask Priya Nair again, or just Priya."
     found = values(find_names, text)
-    assert found == ["Priya Nair", "Priya Nair"]  # the cue hit and the later repeat; the lone "Priya" is not caught
+    assert found == ["Priya Nair", "Priya Nair", "Priya"]  # the cue hit, the later full repeat, and the first name on its own
 
 
 # ---- overlap and policy ----
@@ -222,3 +226,111 @@ def test_a_note_replaces_known_values_even_with_no_cue_but_the_tender_text_path_
         == "[PERSON_1] wants it by Friday, at [ADDRESS_1]"
     )
     assert Redactor().redact("Priya Nair wants it by Friday") == "Priya Nair wants it by Friday"  # no cue: missed by design
+
+
+# ---- v3 ----
+def test_codes_that_look_like_phones_are_left_alone_when_labelled_as_codes():
+    for t in ("SKU 0312 884 120", "Part no. 0245 667 310", "Invoice 0418 220 305", "Ref: 0412 345 678", "order #0412345678"):
+        assert find_phones(t) == [], t
+    assert values(find_phones, "Call 0412 345 678 now") == ["0412 345 678"]
+
+
+@pytest.mark.parametrize("text", ["0491.570.123", "04 9157 0123", "+61 (0)491 570 123", "(08) 5550 1234", "+61 8 5550 1234"])
+def test_more_phone_formats(text):
+    assert values(find_phones, f"Mobile {text} now") == [text]
+
+
+def test_local_number_cue_may_sit_a_few_words_before():
+    assert values(find_phones, "Please phone the office on 5901 7866 to book") == ["5901 7866"]
+    assert find_phones("Quantity 5901 7866 kg") == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "14 Eucalypt Boulevard, Subiaco WA 6008",
+        "Unit 4, 18 Great Western Highway, Bathurst NSW 2795",
+        "Lot 12 Blue Gum Road, Unley SA 5061",
+        "7 Heritage Oak Esplanade Southport QLD 4215",
+        "Pelican Estate, Subiaco",
+        "92 dunmore road, subiaco",
+    ],
+)
+def test_more_address_forms(text):
+    assert values(find_addresses, f"Site: {text}.") == [text]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Match the 14 Grove Street style balusters",
+        "Order 6 Walk Row brackets",
+        "Reuse the 2 Park Lane Pavers",
+        "Add 12 Boundary Road base layers",
+        "Drawing 5120-07 Street elevation",
+    ],
+)
+def test_address_near_misses_v3(text):
+    assert find_addresses(text) == []
+
+
+def test_obfuscated_email():
+    assert values(find_emails, "Reach me at anil.mehta at iinet dot net dot au today") == ["anil.mehta at iinet dot net dot au"]
+    assert find_emails("Meet at the gate at 7.30 at the latest") == []
+
+
+@pytest.mark.parametrize(
+    "text, name",
+    [
+        ("Owner: Rafael Nguyen", "Rafael Nguyen"),
+        ("Prepared by: Mei-Ling O'Connell.", "Mei-Ling O'Connell"),
+        ("Contact name: Hugo De Souza", "Hugo De Souza"),
+        ("Arrange access with Callum Strand (owner) before 8am", "Callum Strand"),
+        ("Ask for Bianca Pereira, the site supervisor, on 0491 570 123", "Bianca Pereira"),
+        ("Send the quote to Tamsin Castellano (t@example.com)", "Tamsin Castellano"),
+        ("Dr. Sunita Whitaker owns it", "Sunita Whitaker"),
+        ("Signed Declan Kavanagh", "Declan Kavanagh"),
+    ],
+)
+def test_more_name_forms(text, name):
+    assert values(find_names, text) == [name]
+
+
+def test_a_surname_or_first_name_alone_is_caught_after_the_full_name():
+    found = values(find_names, "Attn: Rafael Nguyen. Later, Rafael will call. Ask Nguyen for the keys.")
+    assert found == ["Rafael Nguyen", "Rafael", "Nguyen"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Name: Concrete Supplies Pty Ltd",
+        "Ask for Drawing 5 details",
+        "Call Silverton Roofing Pty Ltd",
+        "From: Harbour View Electrical",
+    ],
+)
+def test_more_name_near_misses(text):
+    assert find_names(text) == []
+
+
+def test_an_extra_detector_adds_only_clean_person_spans():
+    from tender_desk.redact import Span
+
+    text = "Speak with Priya Nair today. Ping Silverton Roofing Pty Ltd. ABN 51 824 753 556 call 1300 555 019."
+
+    def at(needle):
+        return text.index(needle), text.index(needle) + len(needle)
+
+    def model(t):  # a stand-in for a local model: finds a name, a company, an ABN and a phone-like number
+        return [
+            Span("PERSON", *at("Priya Nair")),
+            Span("PERSON", *at("Silverton Roofing Pty Ltd")),
+            Span("PHONE", *at("1300 555 019")),
+            Span("PERSON", *at("51 824 753 556")),
+        ]
+
+    r = Redactor(extra_detectors=[model])
+    out = r.redact(text)
+    assert "Priya" not in out and "Silverton Roofing Pty Ltd" in out
+    assert "ABN 51 824 753 556" in out and "1300 555 019" in out  # a model's PHONE span is ignored, and the policy stays

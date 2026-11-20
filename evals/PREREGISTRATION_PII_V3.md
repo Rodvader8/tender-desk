@@ -40,3 +40,7 @@ and no more than 3 false positives across the 20 tenders with no personal data, 
 I expect the rules to miss: names with no cue and no verb and no role word; first names alone before any full name; an address in a layout I haven't thought of; and any 10-digit code starting `02`/`03`/`04` with no negative cue before it. I expect the hybrid to fix most name misses and to add a few false positives on company staff titles and trade terms.
 
 Rules for changing things: v3 rules may change after dev3 results and never after test3. Anything changed after the test3 run goes in an amendment below, with the unamended numbers kept in the README.
+
+## Amendment before the test3 run
+
+Found while writing the unit tests, on dev3 and a stand-in model only: a model PERSON span can land on a number such as an ABN. A model PERSON span containing a digit is now dropped too, as part of the same policy filter. Nothing has been scored on test3 yet.
