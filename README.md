@@ -315,7 +315,7 @@ Still unsolved, in order of concern: lines dropped because the tender "told" the
 | v3 rules (**in the app**) | 87% found | 100% | 100% | 100% | always; no model, instant |
 | v3 hybrid (rules + local Privacy Filter model) | 97% found | 100% | 100% | 100% | offline experiment; about 11 s a tender on CPU |
 
-Recall on `pii_test3.jsonl`, 100 invented tenders I wrote, scored once, criteria set in advance. Precision was 100% and clean tenders raised no false alarms. **Read this with care:** the data is invented and written by me, so these numbers show the rules cover the layouts I thought of, not what real tenders would score. The first version (v1) failed its criteria on an earlier set (names 68%, addresses 62% found, 17 false alarms on 16 clean tenders), and those results are kept below. It isn't anonymisation: a missed value goes to the model. Australian formats only.
+Recall on `pii_test3.jsonl`, 100 invented tenders I wrote, scored once, criteria set in advance. Precision was 100% and clean tenders raised no false alarms. **Read this with care:** the data is invented and written by me, so these numbers show the rules cover the layouts I thought of, not what real tenders would score. The first version (v1) failed its criteria on an earlier set (names 68%, addresses 62% found, 17 false alarms on 16 clean tenders), and those results are kept below. On a rough set of messy, deliberately hostile text that I wrote afterwards, the same rules found only 23% of names and 63 to 75% of other values (details below). It isn't anonymisation: a missed value goes to the model. Australian formats only.
 
 The rest of this section is the detail: policy, method, the three detector rounds with every table, and the limits.
 
@@ -391,6 +391,23 @@ What this suggests, not tested: keep the rules for phones, emails and the busine
 The hybrid is the v3 rules plus the Privacy Filter's person spans, with the model's span dropped if it holds a company or filler word, a digit, or overlaps another type. It's an offline experiment (`scripts/score_pii_v3_hybrid.py`); the app runs the v3 rules, and the code has an `extra_detectors` hook if the model is ever added. The model costs about 11 seconds a tender on CPU.
 
 Read these as what they are. The rules match the layouts I imagined. I wrote the new set before the code, and it has new names, streets and near misses, but I wrote it, and it went from "scores 0 to 0.7" on the old sets to "scores 1.0" in one round on the tuning set too. A 1.000 means the rules cover those formats and nothing more. It isn't a real-world rate, and I haven't tested one real tender. The 15 tenders where v3 rules miss a name are all the same two shapes: the second name in "X first, then Y" and a name with no cue, no verb and no role ("Harlan Ng is the contact"). The v1 and v2 numbers above stay as scored.
+
+**A rough stress test, and it scores much worse.** After v3, I asked the assistant to write 16 deliberately messy tenders (`evals/pii_independent_source.txt`): forwarded email chains, texts, a dictated number, initials, nicknames, a cross-street address, an overseas number, codes that look like phone numbers, a name in a greeting. It's **not independent**: the assistant wrote it knowing how the rules work, and tried to break them. Scored once with the v3 rules, no changes afterwards (`results/pii_independent_v3_rules.json`).
+
+| type | labelled | found | predicted | correct |
+|---|---|---|---|---|
+| person | 13 | 3 (23%) | 8 | 5 |
+| phone | 14 | 10 (71%) | 12 | 12 |
+| email | 4 | 3 (75%) | 4 | 3 |
+| address | 8 | 5 (63%) | 8 | 7 |
+
+One of the 4 tenders with no personal data raised a false alarm. What failed, so you can see the real shape of it:
+- **Names are the problem.** Missed: a first name in a text ("hi its steve here"), initials (`J Smith`, `P. VASILEIOU` after `ATTENTION: MR.`), a title with a surname (`Mrs Obradovic` in a sentence), a name after `Re quote -`, a nickname, a bare surname (`Our PM Tran`). The rules need a cue they know; messy real text often has none.
+- **Formats the rules don't know:** a spoken number ("oh four one two..."), an overseas number (`+44`), `ext 2` after a number, `katarina.o(at)outlook.com`, `cnr Smith & Jones Streets`, a street with no state or postcode and no comma (`12 Harbour St Wollongong`), a suburb address on `Level 3, ...`.
+- **Real false alarms:** `20 Smith Street-style bricks` was read as an address, and `MR` was taken as a name after `ATTENTION:`.
+- **My labelling slips, left as scored:** I didn't label `Dave` in a sign-off or `Sandra (accounts)`, so those two are counted as false alarms when they're real names the rules correctly caught; and I included the word `ph` inside one labelled phone span, which counts as a miss. So the true person recall is a little better than 23% and precision a little better than 5 of 8, but not by much.
+
+The honest reading: on text that looks like the formats I designed for, the rules find nearly everything. On messy real-world text they miss most names and a fifth to a third of other values, and the hybrid with the model would help with names but not with the format gaps. If real tenders look like this, v3 is a floor, not a guarantee. A set written by someone who didn't build the detector is still the better evidence.
 
 Limits, plainly:
 - Australian formats only. A US phone number or a UK postcode isn't recognised.
