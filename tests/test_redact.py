@@ -334,3 +334,34 @@ def test_an_extra_detector_adds_only_clean_person_spans():
     out = r.redact(text)
     assert "Priya" not in out and "Silverton Roofing Pty Ltd" in out
     assert "ABN 51 824 753 556" in out and "1300 555 019" in out  # a model's PHONE span is ignored, and the policy stays
+
+
+# ---- v3.1: fixes after the messy stress set ----
+def test_street_style_is_a_description_not_an_address():
+    assert find_addresses("Supply 20 Smith Street-style bricks") == []
+    assert values(find_addresses, "Site: 20 Smith Street, Manly NSW 2095") == ["20 Smith Street, Manly NSW 2095"]
+
+
+def test_title_and_initials_after_a_cue():
+    assert values(find_names, "ATTENTION: MR. P. VASILEIOU") == ["P. VASILEIOU"]
+    assert values(find_names, "Attn: Mrs Obradovic") == ["Obradovic"]
+    assert values(find_names, "Contact: J Smith on 0412 889 004") == ["J Smith"]
+
+
+def test_phone_extension_is_part_of_the_number():
+    assert values(find_phones, "Number: 0412 889 004 ext 2.") == ["0412 889 004 ext 2"]
+    assert values(find_phones, "Call 02 5550 1234 x45 today") == ["02 5550 1234 x45"]
+    assert values(find_phones, "Call 0412 889 004 extra care") == ["0412 889 004"]
+
+
+def test_email_with_at_in_brackets():
+    assert values(find_emails, "mail katarina.o(at)outlook.com now") == ["katarina.o(at)outlook.com"]
+
+
+def test_corner_and_level_addresses():
+    assert values(find_addresses, "Site cnr Smith & Jones Streets, Newtown NSW 2042.") == [
+        "cnr Smith & Jones Streets, Newtown NSW 2042"
+    ]
+    assert values(find_addresses, "Office: Level 3, 120 Spencer St, Melbourne VIC 3000") == [
+        "Level 3, 120 Spencer St, Melbourne VIC 3000"
+    ]

@@ -44,3 +44,7 @@ Rules for changing things: v3 rules may change after dev3 results and never afte
 ## Amendment before the test3 run
 
 Found while writing the unit tests, on dev3 and a stand-in model only: a model PERSON span can land on a number such as an ABN. A model PERSON span containing a digit is now dropped too, as part of the same policy filter. Nothing has been scored on test3 yet.
+
+## Amendment v3.1, after the test3 run and after the messy stress set
+
+The messy stress set (`PREREGISTRATION_PII_INDEPENDENT.md`, scored with v3 at 23% of names, 63 to 75% of other values) exposed two real false alarms and a few cheap format gaps. The v3 rules were changed: a bare street followed by `-style` is a description; a title (`Mr.`, `Mrs`) right after a cue is skipped; initials count as name words after a cue; `ext N` after a phone number is part of the number; `name(at)domain.com`; `cnr A & B Streets`; `Level N,` and `Suite N,` prefixes. Unamended numbers: the v3 results files (`pii_test3_v3_rules.json`, `pii_independent_v3_rules.json`) stay as scored. v3.1 was run on every set afterwards only to check nothing regressed (`results/*_v3_1_rules.json`): dev3 and test3 numbers are identical to v3, the older sets are unchanged or slightly better, and the stress set improved. The stress set was used to choose the fixes, so its v3.1 numbers are not a fair test of v3.1.

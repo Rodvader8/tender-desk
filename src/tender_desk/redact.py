@@ -38,13 +38,18 @@ _EMAIL_AT = re.compile(
 )
 
 
+_EMAIL_PAREN = re.compile(r"(?<![\w.])[A-Za-z0-9._-]+[(\[]at[)\]][A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?![\w])", re.I)
+
+
 def find_emails(text: str) -> list[Span]:
-    return [Span("EMAIL", m.start(), m.end()) for rx in (_EMAIL, _EMAIL_AT) for m in rx.finditer(text)]
+    return [Span("EMAIL", m.start(), m.end()) for rx in (_EMAIL, _EMAIL_AT, _EMAIL_PAREN) for m in rx.finditer(text)]
 
 
 # ---- phone ----------------------------------------------------------------------------------------------------------
 # A candidate starts with 0 or +61 and is followed by 8 to 10 more digits with spaces, dashes, dots or brackets between them.
-_PHONE = re.compile(r"(?<![\w+/.-])(?:\+61|\(?0\)?)(?:[ \t.()-]*\d){8,10}(?![\d]|[ \t]?\d)")
+_PHONE = re.compile(
+    r"(?<![\w+/.-])(?P<core>(?:\+61|\(?0\)?)(?:[ \t.()-]*\d){8,10})(?![\d]|[ \t]?\d)(?P<ext>[ \t]*(?:ext\.?|extension|x)[ \t]*\d{1,4}\b)?"
+)
 _PHONE_CUES = r"(?:ph|phone|tel|telephone|mob|mobile|call|ring|office|home|after[ \t]+hours)"
 _LOCAL8 = re.compile(
     rf"(?i:\b{_PHONE_CUES}\b)(?:[ \t:.,-]+[A-Za-z]+){{0,3}}?[ \t:.-]*(?<![\d$])(\d{{4}}[ \t-]?\d{{4}})(?![\d.,]?\d)"
@@ -59,7 +64,7 @@ _NOT_A_PHONE_BEFORE = re.compile(
 def find_phones(text: str) -> list[Span]:
     out: list[Span] = []
     for m in _PHONE.finditer(text):
-        raw = m.group(0)
+        raw = m.group("core")
         plus61 = raw.startswith("+61")
         digits = re.sub(r"\D", "", raw)
         if plus61:
@@ -71,7 +76,7 @@ def find_phones(text: str) -> list[Span]:
             continue
         if _NOT_A_PHONE_BEFORE.search(text[max(0, m.start() - 16) : m.start()]):
             continue
-        out.append(Span("PHONE", m.start(), m.end()))
+        out.append(Span("PHONE", m.start(), m.end()))  # the extension, if any, is part of the span
     for m in _LOCAL8.finditer(text):
         if not _NOT_A_PHONE_BEFORE.search(text[max(0, m.start(1) - 16) : m.start(1)]):
             out.append(Span("PHONE", m.start(1), m.end(1)))
@@ -89,11 +94,14 @@ _NAME_WORDS = rf"(?:{_WORD}[ \t]+){{1,4}}"
 _SUBURB = rf"{_WORD}(?:[ \t]+{_WORD}){{0,2}}"
 _TAIL = rf"(?:(?:,?[ \t]*\n?[ \t]*|,?[ \t]+)(?:{_SUBURB}[ \t,]+)?{_STATE}[ \t]+\d{{4}}\b)"
 _STREET = (
-    rf"(?:\bUnit[ \t]+\d{{1,4}}[A-Za-z]?,[ \t]*|\bUnit[ \t]+)?(?<![\d-])\b\d{{1,4}}[A-Za-z]?(?:/\d{{1,4}}[A-Za-z]?)?[ \t]+"
+    rf"(?:\b(?:Level|Suite|Shop|Floor)[ \t]+\d{{1,4}}[A-Za-z]?,[ \t]*|\bUnit[ \t]+\d{{1,4}}[A-Za-z]?,[ \t]*|\bUnit[ \t]+)?(?<![\d-])\b\d{{1,4}}[A-Za-z]?(?:/\d{{1,4}}[A-Za-z]?)?[ \t]+"
     rf"{_NAME_WORDS}(?:{_TYPE_LIST})\b"
 )
 _LOT = rf"\bLot[ \t]+\d{{1,4}}[ \t]+{_NAME_WORDS}(?:{_TYPE_LIST})\b"
-_ADDRESS = re.compile(rf"(?:{_STREET}|{_LOT}){_TAIL}?")
+_CORNER = (
+    rf"\b(?i:cnr|corner)[ \t.]+(?:(?i:of)[ \t]+)?(?:{_WORD}[ \t]+)+(?:&|(?i:and))[ \t]+(?:{_WORD}[ \t]+)*(?:{_TYPE_LIST})s?\b"
+)
+_ADDRESS = re.compile(rf"(?:{_STREET}|{_LOT}|{_CORNER}){_TAIL}?")
 _ESTATE = re.compile(
     rf"(?:\bLot[ \t]+\d{{1,4}}[ \t]+)?(?:(?<![\d-])\b\d{{1,4}}[ \t]+)?(?:{_WORD}[ \t]+){{1,3}}Estate,[ \t]*{_SUBURB}(?:[ \t]+{_STATE}[ \t]+\d{{4}}\b)?"
 )
@@ -133,6 +141,8 @@ def _looks_like_a_quantity(text: str, m: re.Match) -> bool:
     words = set(re.findall(r"[A-Za-z]+", m.group(0)))
     if words & _NOT_STREET_WORDS:
         return True
+    if re.match(r"-[A-Za-z]", text[m.end() : m.end() + 2]):  # "Smith Street-style bricks"
+        return True
     nxt = _NEXT_WORD.match(text, m.end())
     if not nxt:
         return False
@@ -150,7 +160,7 @@ def find_addresses(text: str) -> list[Span]:
 
 
 # ---- names ----------------------------------------------------------------------------------------------------------
-_NAME_WORD = r"(?:[A-Z][A-Za-z'’-]+|[A-Z][A-Z'’-]+)"
+_NAME_WORD = r"(?:[A-Z][A-Za-z'’-]+|[A-Z][A-Z'’-]+|[A-Z]\.?(?=[ \t]+[A-Z]))"
 _NAME = rf"{_NAME_WORD}(?:[ \t]+{_NAME_WORD}){{0,2}}"
 _CUES = (
     r"(?:Attn|Attention|Site[ \t]+contact|Contact[ \t]+person|Contact|Kind[ \t]+regards|Best[ \t]+regards|Regards|Thanks|Cheers|Signed)"
@@ -168,7 +178,7 @@ _VERB_CUES = (
 _ROLES = r"(?:owner|client|site[ \t]+manager|foreman|supervisor|manager|site[ \t]+supervisor)"
 _TITLES = r"(?:Mr|Mrs|Ms|Miss|Mx|Dr)\.?[ \t]+"
 _NAME_CUE = re.compile(
-    rf"(?i:\b(?:{_CUES}))(?P<n1>{_NAME})"
+    rf"(?i:\b(?:{_CUES}))(?:(?i:(?:Mr|Mrs|Ms|Miss|Mx|Dr))\.?[ \t]+)?(?P<n1>{_NAME})"
     rf"|\b{_TITLES}(?P<n2>{_NAME})"
     rf"|(?i:\b{_COLON_CUES})(?P<n3>{_NAME})"
     rf"|(?i:\b{_VERB_CUES})(?P<n4>{_NAME})"

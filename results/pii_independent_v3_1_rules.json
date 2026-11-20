@@ -1,0 +1,126 @@
+{
+ "detector": "v3_1_rules",
+ "set": "independent",
+ "tenders": 16,
+ "tenders_without_personal_data": 4,
+ "per_type": {
+  "PERSON": {
+   "labelled": 13,
+   "found": 4,
+   "recall": 0.308,
+   "predicted": 8,
+   "correct": 6,
+   "precision": 0.75
+  },
+  "PHONE": {
+   "labelled": 14,
+   "found": 11,
+   "recall": 0.786,
+   "predicted": 12,
+   "correct": 12,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 4,
+   "found": 4,
+   "recall": 1.0,
+   "predicted": 5,
+   "correct": 4,
+   "precision": 0.8
+  },
+  "ADDRESS": {
+   "labelled": 8,
+   "found": 7,
+   "recall": 0.875,
+   "predicted": 8,
+   "correct": 8,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 9,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [
+  {
+   "id": "i002",
+   "type": "PERSON",
+   "value": "steve"
+  },
+  {
+   "id": "i003",
+   "type": "PHONE",
+   "value": "oh four one two, eight eight nine, zero zero four"
+  },
+  {
+   "id": "i005",
+   "type": "PERSON",
+   "value": "Mrs Obradovic"
+  },
+  {
+   "id": "i005",
+   "type": "PERSON",
+   "value": "Katarina"
+  },
+  {
+   "id": "i009",
+   "type": "PERSON",
+   "value": "J Smith"
+  },
+  {
+   "id": "i010",
+   "type": "PERSON",
+   "value": "Bluey"
+  },
+  {
+   "id": "i010",
+   "type": "PHONE",
+   "value": "ph 95550143"
+  },
+  {
+   "id": "i011",
+   "type": "PERSON",
+   "value": "Ms Linh Tran-Nguyen"
+  },
+  {
+   "id": "i011",
+   "type": "PHONE",
+   "value": "+44 20 7946 0958"
+  },
+  {
+   "id": "i013",
+   "type": "ADDRESS",
+   "value": "12 Harbour St Wollongong"
+  },
+  {
+   "id": "i014",
+   "type": "PERSON",
+   "value": "Margaret O'Shea-Brennan"
+  },
+  {
+   "id": "i016",
+   "type": "PERSON",
+   "value": "Tran"
+  },
+  {
+   "id": "i016",
+   "type": "PERSON",
+   "value": "Tran"
+  }
+ ],
+ "false_positives": [
+  {
+   "id": "i001",
+   "type": "EMAIL",
+   "value": "tenders@example.com"
+  },
+  {
+   "id": "i001",
+   "type": "PERSON",
+   "value": "Dave"
+  },
+  {
+   "id": "i005",
+   "type": "PERSON",
+   "value": "Sandra"
+  }
+ ]
+}

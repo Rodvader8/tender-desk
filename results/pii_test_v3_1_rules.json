@@ -1,0 +1,100 @@
+{
+ "detector": "v3_1_rules",
+ "set": "test",
+ "tenders": 80,
+ "tenders_without_personal_data": 16,
+ "per_type": {
+  "PERSON": {
+   "labelled": 114,
+   "found": 105,
+   "recall": 0.921,
+   "predicted": 107,
+   "correct": 107,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 91,
+   "found": 89,
+   "recall": 0.978,
+   "predicted": 89,
+   "correct": 89,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 29,
+   "found": 29,
+   "recall": 1.0,
+   "predicted": 29,
+   "correct": 29,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 32,
+   "found": 32,
+   "recall": 1.0,
+   "predicted": 32,
+   "correct": 32,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 10,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [
+  {
+   "id": "t004",
+   "type": "PERSON",
+   "value": "Rohan"
+  },
+  {
+   "id": "t008",
+   "type": "PERSON",
+   "value": "Natasha Banerjee"
+  },
+  {
+   "id": "t012",
+   "type": "PERSON",
+   "value": "Esther"
+  },
+  {
+   "id": "t013",
+   "type": "PERSON",
+   "value": "Dimitri Brennan"
+  },
+  {
+   "id": "t015",
+   "type": "PERSON",
+   "value": "Rohan Brennan"
+  },
+  {
+   "id": "t031",
+   "type": "PERSON",
+   "value": "Fatima"
+  },
+  {
+   "id": "t039",
+   "type": "PERSON",
+   "value": "Ines"
+  },
+  {
+   "id": "t046",
+   "type": "PERSON",
+   "value": "Dimitri"
+  },
+  {
+   "id": "t046",
+   "type": "PHONE",
+   "value": "54081667"
+  },
+  {
+   "id": "t047",
+   "type": "PHONE",
+   "value": "54614936"
+  },
+  {
+   "id": "t052",
+   "type": "PERSON",
+   "value": "Natasha"
+  }
+ ],
+ "false_positives": []
+}

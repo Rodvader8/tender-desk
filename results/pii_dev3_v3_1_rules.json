@@ -1,0 +1,44 @@
+{
+ "detector": "v3_1_rules",
+ "set": "dev3",
+ "tenders": 40,
+ "tenders_without_personal_data": 8,
+ "per_type": {
+  "PERSON": {
+   "labelled": 42,
+   "found": 42,
+   "recall": 1.0,
+   "predicted": 42,
+   "correct": 42,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 38,
+   "found": 38,
+   "recall": 1.0,
+   "predicted": 38,
+   "correct": 38,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 13,
+   "found": 13,
+   "recall": 1.0,
+   "predicted": 13,
+   "correct": 13,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 21,
+   "found": 21,
+   "recall": 1.0,
+   "predicted": 21,
+   "correct": 21,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 0,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [],
+ "false_positives": []
+}

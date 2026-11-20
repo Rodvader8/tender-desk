@@ -1,0 +1,120 @@
+{
+ "detector": "v3_1_rules",
+ "set": "test3",
+ "tenders": 100,
+ "tenders_without_personal_data": 20,
+ "per_type": {
+  "PERSON": {
+   "labelled": 116,
+   "found": 101,
+   "recall": 0.871,
+   "predicted": 103,
+   "correct": 103,
+   "precision": 1.0
+  },
+  "PHONE": {
+   "labelled": 74,
+   "found": 74,
+   "recall": 1.0,
+   "predicted": 74,
+   "correct": 74,
+   "precision": 1.0
+  },
+  "EMAIL": {
+   "labelled": 47,
+   "found": 47,
+   "recall": 1.0,
+   "predicted": 47,
+   "correct": 47,
+   "precision": 1.0
+  },
+  "ADDRESS": {
+   "labelled": 46,
+   "found": 46,
+   "recall": 1.0,
+   "predicted": 46,
+   "correct": 46,
+   "precision": 1.0
+  }
+ },
+ "tenders_with_at_least_one_miss": 15,
+ "false_positives_on_tenders_without_personal_data": 0,
+ "misses": [
+  {
+   "id": "u002",
+   "type": "PERSON",
+   "value": "Harlan Ng"
+  },
+  {
+   "id": "u003",
+   "type": "PERSON",
+   "value": "Kwame"
+  },
+  {
+   "id": "u009",
+   "type": "PERSON",
+   "value": "Nadia"
+  },
+  {
+   "id": "u015",
+   "type": "PERSON",
+   "value": "Bartek Oyelaran"
+  },
+  {
+   "id": "u021",
+   "type": "PERSON",
+   "value": "Wilhelmina Fairweather"
+  },
+  {
+   "id": "u023",
+   "type": "PERSON",
+   "value": "Taj Fairweather"
+  },
+  {
+   "id": "u034",
+   "type": "PERSON",
+   "value": "Leilani Asante"
+  },
+  {
+   "id": "u036",
+   "type": "PERSON",
+   "value": "Saoirse"
+  },
+  {
+   "id": "u043",
+   "type": "PERSON",
+   "value": "Greta"
+  },
+  {
+   "id": "u050",
+   "type": "PERSON",
+   "value": "Kwame Oyelaran"
+  },
+  {
+   "id": "u062",
+   "type": "PERSON",
+   "value": "Bartek Ng"
+  },
+  {
+   "id": "u063",
+   "type": "PERSON",
+   "value": "Saoirse Zielinski"
+  },
+  {
+   "id": "u069",
+   "type": "PERSON",
+   "value": "Greta Pellegrini"
+  },
+  {
+   "id": "u071",
+   "type": "PERSON",
+   "value": "Bartek Zielinski"
+  },
+  {
+   "id": "u076",
+   "type": "PERSON",
+   "value": "Kwame Zielinski"
+  }
+ ],
+ "false_positives": []
+}
