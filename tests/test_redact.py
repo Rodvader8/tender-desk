@@ -212,3 +212,13 @@ def test_repr_never_shows_a_value():
     r = Redactor()
     r.redact("Attn: Priya Nair 0491 570 123")
     assert "Priya" not in repr(r) and "0491" not in repr(r)
+
+
+def test_a_note_replaces_known_values_even_with_no_cue_but_the_tender_text_path_does_not():
+    r = Redactor()
+    r.redact("Attn: Priya Nair, 12 Wattle Street, Manly NSW 2095")
+    assert (
+        r.redact_note("Priya Nair wants it by Friday, at 12 wattle street, Manly NSW 2095")
+        == "[PERSON_1] wants it by Friday, at [ADDRESS_1]"
+    )
+    assert Redactor().redact("Priya Nair wants it by Friday") == "Priya Nair wants it by Friday"  # no cue: missed by design

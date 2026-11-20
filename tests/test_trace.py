@@ -33,6 +33,7 @@ def test_each_step_is_recorded_with_its_own_time_and_cost(conn):
     g = build_graph(CostedLLM(SCOPE, [good_choices(conn)]), conn, MemorySaver())
     tid, cfg, res = submit(conn, g, "TEST tender", "Build a rear extension. 10 m3 concrete. 40 hours framing.")
     assert [s[0] for s in steps(conn, tid)] == [
+        "redact",
         "extract",
         "retrieve",
         "estimate",
@@ -52,7 +53,12 @@ def test_a_revision_shows_up_as_extra_estimate_steps_and_extra_cost(conn):
     tid, cfg, _ = submit(conn, g, "TEST tender", "Build a rear extension. 10 m3 concrete. 40 hours framing.")
     decide(g, cfg, approve=False, by="rod", notes="use 32MPa")
     names = [s[0] for s in steps(conn, tid)]
-    assert names.count("estimate") == 2 and names.count("build_draft") == 2 and names.count("extract") == 1
+    assert (
+        names.count("estimate") == 2
+        and names.count("build_draft") == 2
+        and names.count("extract") == 1
+        and names.count("redact") == 1
+    )
     assert round(sum(float(s[2]) for s in steps(conn, tid)), 6) == 0.003
 
 
@@ -61,7 +67,7 @@ def test_the_api_reports_the_run_for_one_tender(conn):
     first = c.post("/tenders", json=TENDER).json()
     run = c.get(f"/tenders/{first['id']}").json()["run"]
     assert run["cost_usd"] == 0.002 and run["llm_calls"] == 2 and run["ms"] >= 0
-    assert [s["step"] for s in run["steps"]] == ["extract", "retrieve", "estimate", "build_draft"]
+    assert [s["step"] for s in run["steps"]] == ["redact", "extract", "retrieve", "estimate", "build_draft"]
 
 
 def test_a_failing_step_is_recorded_with_its_error_type_and_no_message(conn):
@@ -69,7 +75,8 @@ def test_a_failing_step_is_recorded_with_its_error_type_and_no_message(conn):
     assert c.post("/tenders", json=TENDER).status_code == 500
     tid = conn.execute("SELECT id FROM tenders WHERE title='TEST api tender' ORDER BY id DESC LIMIT 1").fetchone()[0]
     assert [(s[0], s[4]) for s in steps(conn, tid)] == [
-        ("extract", "RuntimeError")
+        ("redact", None),
+        ("extract", "RuntimeError"),
     ]  # the type, never the message (it can hold data)
     assert "secret" not in str(c.get(f"/tenders/{tid}").json())
 
@@ -79,5 +86,5 @@ def test_step_log_lines_carry_the_tender_id_for_correlation(conn, caplog):
         g = build_graph(CostedLLM(SCOPE, [good_choices(conn)]), conn, MemorySaver())
         tid, _, _ = submit(conn, g, "TEST tender", "Build a rear extension. 10 m3 concrete. 40 hours framing.")
     recs = [r for r in caplog.records if r.getMessage() == "step"]
-    assert [r.step for r in recs] == ["extract", "retrieve", "estimate", "build_draft"]
+    assert [r.step for r in recs] == ["redact", "extract", "retrieve", "estimate", "build_draft"]
     assert all(r.tender_id == tid for r in recs)

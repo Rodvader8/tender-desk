@@ -65,7 +65,7 @@ def test_approval_saves_quote_and_audit_trail(conn):
     decide(g, cfg, approve=True, by="rod")
     assert conn.execute("SELECT status, decided_by FROM quotes WHERE tender_id=%s", (tid,)).fetchone() == ("approved", "rod")
     events = [r[0] for r in conn.execute("SELECT event FROM audit_log WHERE tender_id=%s ORDER BY id", (tid,)).fetchall()]
-    assert events == ["tender_received", "scope_extracted", "draft_built", "decision", "finalized"]
+    assert events == ["tender_received", "pii_redacted", "scope_extracted", "draft_built", "decision", "finalized"]
 
 
 def test_item_the_model_was_never_offered_is_rejected(conn):

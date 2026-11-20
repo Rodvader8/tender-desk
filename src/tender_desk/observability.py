@@ -25,6 +25,12 @@ STEP_SECONDS = Histogram("tender_workflow_step_seconds", "Workflow step latency"
 TENDERS = Counter(
     "tender_workflow_events_total", "Workflow events", ["event"], registry=REGISTRY
 )  # created, approved, rejected, stopped, failed
+PII_REDACTIONS = Counter(
+    "tender_pii_redactions_total",
+    "Personal-data values replaced before the model call, by type (a count, never a value)",
+    ["type"],
+    registry=REGISTRY,
+)
 
 
 def observe_llm(model: str, purpose: str, seconds: float, cost: float, tokens: int) -> None:

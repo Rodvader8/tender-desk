@@ -9,6 +9,9 @@ Design rules:
   * Nothing is saved as a quote until a person approves or rejects it. State is checkpointed,
     so the workflow can wait for that decision for days.
   * Tender text is untrusted data. The prompts tell the model to ignore instructions inside it.
+  * Personal data (names, phones, emails, street addresses) is replaced with placeholders before the model sees the tender. The
+    code rebuilds the placeholder map from the stored tender text and puts the real values back into the draft. Only counts of
+    what was redacted are logged. See redact.py.
 """
 
 from __future__ import annotations
@@ -26,8 +29,9 @@ from langgraph.types import Command, interrupt
 
 from .guard import Defenses, default_defenses, injection_phrases, neutralise, numbered_items, quantity_in_text
 from .models import BoundedScope, Draft, QuoteLine, Scope
-from .observability import timed_step
+from .observability import PII_REDACTIONS, timed_step
 from .pricing import build_offer, choose_prices
+from .redact import TYPES, Redactor
 from .search import comparable_jobs, price_candidates
 from .specs import spec_conflicts
 from .units import units_compatible
@@ -107,6 +111,23 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
 
         return inner
 
+    def redactor_for(tender_id: int, fallback_text: str = "") -> Redactor:
+        """The tender's placeholder map, rebuilt from the stored text. Redaction is deterministic, so this is the same map the
+        redact step made, and nothing but the tender text has to be kept."""
+        row = conn.execute("SELECT raw_text FROM tenders WHERE id=%s", (tender_id,)).fetchone()
+        r = Redactor()
+        r.redact(row[0] if row else fallback_text)
+        return r
+
+    def redact(state: State) -> dict:
+        r = Redactor()
+        text = r.redact(state["tender_text"])
+        for t in TYPES:
+            if r.counts[t]:
+                PII_REDACTIONS.labels(t).inc(r.counts[t])
+        audit(conn, state["tender_id"], "pii_redacted", **{t.lower(): r.counts[t] for t in TYPES})  # counts, never values
+        return {"tender_text": text}
+
     def extract(state: State) -> dict:
         d = defenses
         system = (
@@ -135,7 +156,10 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
 
     def estimate(state: State) -> dict:
         offer = build_offer(state["scope"]["items"], state["candidates"])
-        return {"choices": choose_prices(llm, offer, state.get("notes", ""), notice=defenses.estimate_notice).model_dump()}
+        notes = state.get("notes", "")
+        if notes:  # a reviewer may type a name or number into their feedback; it goes to the model too
+            notes = redactor_for(state["tender_id"]).redact_note(notes)
+        return {"choices": choose_prices(llm, offer, notes, notice=defenses.estimate_notice).model_dump()}
 
     def build_draft(state: State) -> dict:
         items = state["scope"]["items"]
@@ -211,7 +235,8 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
         )
         conn.execute("UPDATE tenders SET status='awaiting_approval' WHERE id=%s", (state["tender_id"],))
         audit(conn, state["tender_id"], "draft_built", total=draft.total, flags=len(flags))
-        return {"draft": draft.model_dump()}
+        shown = redactor_for(state["tender_id"]).restore_deep(draft.model_dump())  # the reviewer sees real values
+        return {"draft": shown}
 
     def approval(state: State) -> Command:
         digest = draft_digest(state["draft"])
@@ -257,6 +282,7 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
 
     g = StateGraph(State)
     for name, fn in [
+        ("redact", redact),
         ("extract", extract),
         ("retrieve", retrieve),
         ("estimate", estimate),
@@ -266,7 +292,8 @@ def build_graph(llm, conn, checkpointer, defenses: Defenses | None = None, porta
         ("send_quote", send_quote),
     ]:
         g.add_node(name, fn if name == "approval" else traced(name, fn))
-    g.add_edge(START, "extract")
+    g.add_edge(START, "redact")
+    g.add_edge("redact", "extract")
     g.add_edge("extract", "retrieve")
     g.add_edge("retrieve", "estimate")
     g.add_edge("estimate", "build_draft")
@@ -280,7 +307,7 @@ def create_tender(conn, title: str, text: str, tenant: str = "default") -> int:
     tid = conn.execute(
         "INSERT INTO tenders (title, raw_text, tenant) VALUES (%s,%s,%s) RETURNING id", (title, text, tenant)
     ).fetchone()[0]
-    audit(conn, tid, "tender_received", title=title)
+    audit(conn, tid, "tender_received", title=Redactor().redact(title))  # a title can carry a name or an address too
     return tid
 
 

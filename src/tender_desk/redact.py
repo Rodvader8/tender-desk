@@ -232,6 +232,14 @@ class Redactor:
         out.append(text[last:])
         return "".join(out)
 
+    def redact_note(self, text: str) -> str:
+        """For free text a reviewer types after the tender was read. Values already known from the tender are replaced wherever
+        they appear, cue or no cue; then the normal detector runs. The tender text itself only goes through `redact`, so what is
+        measured in the evaluation is what runs on tenders."""
+        for ph, value in sorted(self._real.items(), key=lambda kv: -len(kv[1])):
+            text = re.sub(rf"(?<!\w){re.escape(value)}(?!\w)", ph, text, flags=re.I)
+        return self.redact(text)
+
     def restore(self, text: str) -> str:
         """Put real values back. A placeholder this tender never issued is left as it is."""
         return _PLACEHOLDER.sub(lambda m: self._real.get(m.group(0), m.group(0)), text)
